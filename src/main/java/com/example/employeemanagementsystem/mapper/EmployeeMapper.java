@@ -28,11 +28,11 @@ public abstract class EmployeeMapper {
     protected PositionDao positionDao;
     protected UserDao userDao;
 
-    public EmployeeMapper() {
+    protected EmployeeMapper() {
     }
 
     @Autowired
-    public EmployeeMapper(DepartmentDao departmentDao, PositionDao positionDao, UserDao userDao) {
+    protected EmployeeMapper(DepartmentDao departmentDao, PositionDao positionDao, UserDao userDao) {
         this.departmentDao = departmentDao;
         this.positionDao = positionDao;
         this.userDao = userDao;
