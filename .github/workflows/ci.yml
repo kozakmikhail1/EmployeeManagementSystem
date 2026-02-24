@@ -31,7 +31,13 @@ jobs:
         run: mvn -B -V -DskipTests=false verify
 
       - name: SonarCloud analysis
-        if: secrets.SONAR_TOKEN != '' && secrets.SONAR_ORGANIZATION != '' && secrets.SONAR_PROJECT_KEY != ''
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B sonar:sonar -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+          SONAR_ORG: ${{ secrets.SONAR_ORGANIZATION }}
+          SONAR_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ] && [ -n "$SONAR_ORG" ] && [ -n "$SONAR_KEY" ]; then
+            mvn -B sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dsonar.organization=$SONAR_ORG -Dsonar.projectKey=$SONAR_KEY
+          else
+            echo "SonarCloud secrets not configured, skipping analysis"
+          fi
