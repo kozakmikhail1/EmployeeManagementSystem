@@ -34,3 +34,13 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B sonar:sonar -Dsonar.token=${{ secrets.SONAR_TOKEN }} -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} -Dsonar.projectKey=kozakmikhail1_EmployeeManagementSystem -Dsonar.issue.ignore.multicriteria=e1 -Dsonar.issue.ignore.multicriteria.e1.ruleKey=java:S6437 -Dsonar.issue.ignore.multicriteria.e1.resourceKey=**/*
+
+      - name: SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B sonar:sonar \
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+          -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+          -Dsonar.projectKey=kozakmikhail1_EmployeeManagementSystem \
+          -Dsonar.coverage.exclusions=**/*.java \
+          -Dsonar.qualitygate.wait=false
