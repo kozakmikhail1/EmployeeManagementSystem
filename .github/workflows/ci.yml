@@ -31,7 +31,7 @@ jobs:
         run: mvn -B -V -DskipTests=false verify
 
       - name: SonarCloud analysis
-        if: ${{ secrets.SONAR_TOKEN != '' && secrets.SONAR_ORGANIZATION != '' && secrets.SONAR_PROJECT_KEY != '' }}
+        if: secrets.SONAR_TOKEN != '' && secrets.SONAR_ORGANIZATION != '' && secrets.SONAR_PROJECT_KEY != ''
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B sonar:sonar -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
