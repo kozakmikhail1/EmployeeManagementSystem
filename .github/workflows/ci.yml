@@ -33,6 +33,4 @@ jobs:
       - name: SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_ORG: ${{ secrets.SONAR_ORGANIZATION }}
-          SONAR_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-        run: mvn -B sonar:sonar -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+        run: mvn -B sonar:sonar -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
