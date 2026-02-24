@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.example.employeemanagementsystem.model.Employee;
 
 @Repository
-public interface EmployeeDao extends JpaRepository<Employee, Long> {
+public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findBySalaryBetween(BigDecimal minSalary, BigDecimal maxSalary);
 
     List<Employee> findBySalaryGreaterThanEqual(BigDecimal minSalary);

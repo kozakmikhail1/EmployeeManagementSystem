@@ -12,29 +12,29 @@ import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.DepartmentMapper;
 import com.example.employeemanagementsystem.model.Department;
 import com.example.employeemanagementsystem.model.Employee;
-import com.example.employeemanagementsystem.repository.DepartmentDao;
+import com.example.employeemanagementsystem.repository.DepartmentRepository;
 
 @Service
 public class DepartmentService {
 
     private static final String DEPARTMENT_NOT_FOUND_MESSAGE = "Department not found with id ";
 
-    private final DepartmentDao departmentDao;
+    private final DepartmentRepository departmentRepository;
     private final DepartmentMapper departmentMapper;
     private final UserService userService; // Добавляем UserService
 
     @Autowired
     public DepartmentService(
-            DepartmentDao departmentDao, DepartmentMapper departmentMapper,
+            DepartmentRepository departmentRepository, DepartmentMapper departmentMapper,
             UserService userService) {
-        this.departmentDao = departmentDao;
+        this.departmentRepository = departmentRepository;
         this.departmentMapper = departmentMapper;
         this.userService = userService; // Внедряем UserService
     }
 
     @Transactional(readOnly = true)
     public DepartmentDto getDepartmentById(Long id) {
-        return departmentDao
+        return departmentRepository
                 .findById(id)
                 .map(departmentMapper::toDto)
                 .orElseThrow(
@@ -43,7 +43,7 @@ public class DepartmentService {
 
     @Transactional(readOnly = true)
     public List<DepartmentDto> getAllDepartments() {
-        return departmentDao.findAll().stream()
+        return departmentRepository.findAll().stream()
                 .map(departmentMapper::toDto)
                 .toList();
     }
@@ -51,24 +51,24 @@ public class DepartmentService {
     @Transactional
     public DepartmentDto createDepartment(DepartmentCreateDto departmentDto) {
         Department department = departmentMapper.toEntity(departmentDto);
-        Department savedDepartment = departmentDao.save(department);
+        Department savedDepartment = departmentRepository.save(department);
         return departmentMapper.toDto(savedDepartment);
     }
 
     @Transactional
     public DepartmentDto updateDepartment(Long id, DepartmentCreateDto departmentDto) {
-        Department department = departmentDao
+        Department department = departmentRepository
                 .findById(id)
                 .orElseThrow(
                         () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
         departmentMapper.updateDepartmentFromDto(departmentDto, department);
-        Department updatedDepartment = departmentDao.save(department);
+        Department updatedDepartment = departmentRepository.save(department);
         return departmentMapper.toDto(updatedDepartment);
     }
 
     @Transactional
     public void deleteDepartment(Long id) {
-        Department department = departmentDao.findById(id)
+        Department department = departmentRepository.findById(id)
                 .orElseThrow(
                         () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
 
@@ -80,6 +80,6 @@ public class DepartmentService {
         }
 
         // Теперь безопасно удаляем Department (Employee удалятся каскадно)
-        departmentDao.delete(department);
+        departmentRepository.delete(department);
     }
 }

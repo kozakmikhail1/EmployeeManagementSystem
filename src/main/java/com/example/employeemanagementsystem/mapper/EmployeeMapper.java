@@ -1,76 +1,106 @@
 package com.example.employeemanagementsystem.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValueCheckStrategy;
-import org.mapstruct.NullValuePropertyMappingStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
-import com.example.employeemanagementsystem.model.Department;
 import com.example.employeemanagementsystem.model.Employee;
-import com.example.employeemanagementsystem.model.Position;
-import com.example.employeemanagementsystem.model.User;
-import com.example.employeemanagementsystem.repository.DepartmentDao;
-import com.example.employeemanagementsystem.repository.PositionDao;
-import com.example.employeemanagementsystem.repository.UserDao;
+import com.example.employeemanagementsystem.repository.DepartmentRepository;
+import com.example.employeemanagementsystem.repository.PositionRepository;
+import com.example.employeemanagementsystem.repository.UserRepository;
 
-@Mapper(componentModel = "spring", uses = {DepartmentMapper.class,
-        PositionMapper.class, UserMapper.class},
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-public abstract class EmployeeMapper {
+@Component  // Используем обычный Spring компонент вместо маппера
+@RequiredArgsConstructor
+public class EmployeeMapper {
 
-    protected DepartmentDao departmentDao;
-    protected PositionDao positionDao;
-    protected UserDao userDao;
+    private final DepartmentRepository departmentRepository;
+    private final PositionRepository positionRepository;
+    private final UserRepository userRepository;
+    private final DepartmentMapper departmentMapper;
+    private final PositionMapper positionMapper;
+    private final UserMapper userMapper;
 
-    protected EmployeeMapper() {
+    public Employee toEntity(EmployeeCreateDto dto) {
+        if (dto == null) return null;
+
+        Employee employee = new Employee();
+        employee.setFirstName(dto.getFirstName());
+        employee.setLastName(dto.getLastName());
+        employee.setEmail(dto.getEmail());
+        employee.setHireDate(dto.getHireDate());
+        employee.setSalary(dto.getSalary());
+        employee.setIsActive(dto.getIsActive());
+
+        if (dto.getDepartmentId() != null) {
+            employee.setDepartment(departmentRepository.findById(dto.getDepartmentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
+        }
+
+        if (dto.getPositionId() != null) {
+            employee.setPosition(positionRepository.findById(dto.getPositionId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
+        }
+
+        if (dto.getUserId() != null) {
+            employee.setUser(userRepository.findById(dto.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+        }
+
+        return employee;
     }
 
-    @Autowired
-    protected EmployeeMapper(DepartmentDao departmentDao, PositionDao positionDao, UserDao userDao) {
-        this.departmentDao = departmentDao;
-        this.positionDao = positionDao;
-        this.userDao = userDao;
+    public EmployeeDto toDto(Employee entity) {
+        if (entity == null) return null;
+
+        EmployeeDto dto = new EmployeeDto();
+        dto.setId(entity.getId());
+        dto.setFirstName(entity.getFirstName());
+        dto.setLastName(entity.getLastName());
+        dto.setEmail(entity.getEmail());
+        dto.setHireDate(entity.getHireDate());
+        dto.setSalary(entity.getSalary());
+        dto.setIsActive(entity.getIsActive());
+
+        if (entity.getDepartment() != null) {
+            dto.setDepartment(departmentMapper.toDto(entity.getDepartment()));
+        }
+
+        if (entity.getPosition() != null) {
+            dto.setPosition(positionMapper.toDto(entity.getPosition()));
+        }
+
+        if (entity.getUser() != null) {
+            dto.setUser(userMapper.toDto(entity.getUser()));
+        }
+
+        return dto;
     }
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(source = "departmentId", target = "department")
-    @Mapping(source = "positionId", target = "position")
-    @Mapping(source = "userId", target = "user")
-    public abstract Employee toEntity(EmployeeCreateDto dto);
+    public void updateEmployeeFromDto(EmployeeCreateDto dto, Employee entity) {
+        if (dto == null || entity == null) return;
 
-    public abstract EmployeeDto toDto(Employee entity);
+        if (dto.getFirstName() != null) entity.setFirstName(dto.getFirstName());
+        if (dto.getLastName() != null) entity.setLastName(dto.getLastName());
+        if (dto.getEmail() != null) entity.setEmail(dto.getEmail());
+        if (dto.getHireDate() != null) entity.setHireDate(dto.getHireDate());
+        if (dto.getSalary() != null) entity.setSalary(dto.getSalary());
+        if (dto.getIsActive() != null) entity.setIsActive(dto.getIsActive());
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(source = "departmentId", target = "department")
-    @Mapping(source = "positionId", target = "position")
-    @Mapping(source = "userId", target = "user")
-    public abstract void updateEmployeeFromDto(EmployeeCreateDto dto,
-                                               @MappingTarget Employee entity);
+        if (dto.getDepartmentId() != null) {
+            entity.setDepartment(departmentRepository.findById(dto.getDepartmentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
+        }
 
-    protected Department departmentFromId(Long departmentId) {
-        return departmentId == null ? null
-                : departmentDao.findById(departmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Department not found with id "
-                        + departmentId));
-    }
+        if (dto.getPositionId() != null) {
+            entity.setPosition(positionRepository.findById(dto.getPositionId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
+        }
 
-    protected Position positionFromId(Long positionId) {
-        return positionId == null ? null
-                : positionDao.findById(positionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Position not found with id "
-                        + positionId));
-    }
-
-    protected User userFromId(Long userId) {
-        return userId == null ? null
-                : userDao.findById(userId)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("User not found with id " + userId));
+        if (dto.getUserId() != null) {
+            entity.setUser(userRepository.findById(dto.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+        }
     }
 }

@@ -14,37 +14,37 @@ import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.EmployeeMapper;
 import com.example.employeemanagementsystem.model.Employee;
 import com.example.employeemanagementsystem.model.User;
-import com.example.employeemanagementsystem.repository.EmployeeDao;
-import com.example.employeemanagementsystem.repository.UserDao;
+import com.example.employeemanagementsystem.repository.EmployeeRepository;
+import com.example.employeemanagementsystem.repository.UserRepository;
 
 @Service
 public class EmployeeService {
 
     private static final String EMPLOYEE_NOT_FOUND_MESSAGE = "Employee not found with id ";
 
-    private final EmployeeDao employeeDao;
+    private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
-    private final UserDao userDao;
+    private final UserRepository userRepository;
 
     @Autowired
-    public EmployeeService(EmployeeDao employeeDao,
+    public EmployeeService(EmployeeRepository employeeRepository,
                            EmployeeMapper employeeMapper,
-                           UserDao userDao) {
-        this.employeeDao = employeeDao;
+                           UserRepository userRepository) {
+        this.employeeRepository = employeeRepository;
         this.employeeMapper = employeeMapper;
-        this.userDao = userDao;
+        this.userRepository = userRepository;
     }
 
     @Transactional
     public EmployeeDto createEmployee(EmployeeCreateDto employeeDto) {
         Employee employee = employeeMapper.toEntity(employeeDto);
 
-        User user = userDao.findById(employeeDto.getUserId())
+        User user = userRepository.findById(employeeDto.getUserId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "User not found with id " + employeeDto.getUserId()));
         employee.setUser(user);
-        Employee savedEmployee = employeeDao.save(employee);
+        Employee savedEmployee = employeeRepository.save(employee);
 
         return employeeMapper.toDto(savedEmployee);
     }
@@ -52,14 +52,14 @@ public class EmployeeService {
     @Transactional
     public EmployeeDto updateEmployee(Long id, EmployeeCreateDto employeeDto) {
         Employee employee =
-                employeeDao
+                employeeRepository
                         .findById(id)
                         .orElseThrow(() -> new ResourceNotFoundException(
                                 EMPLOYEE_NOT_FOUND_MESSAGE + id));
 
         if (employeeDto.getUserId() != null
                 && !employeeDto.getUserId().equals(employee.getUser().getId())) {
-            User user = userDao
+            User user = userRepository
                     .findById(employeeDto.getUserId())
                     .orElseThrow(
                             () -> new ResourceNotFoundException(
@@ -68,63 +68,63 @@ public class EmployeeService {
         }
 
         employeeMapper.updateEmployeeFromDto(employeeDto, employee);
-        Employee updatedEmployee = employeeDao.save(employee);
+        Employee updatedEmployee = employeeRepository.save(employee);
         return employeeMapper.toDto(updatedEmployee);
     }
 
 
     @Transactional(readOnly = true)
     public Optional<Employee> getEmployeeById(Long id) {
-        return employeeDao.findById(id);
+        return employeeRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
     public EmployeeDto getEmployeeDtoById(Long id) {
-        return employeeDao.findById(id)
+        return employeeRepository.findById(id)
                 .map(employeeMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE + id));
     }
 
     @Transactional(readOnly = true)
     public List<EmployeeDto> getAllEmployees() {
-        return employeeDao.findAll().stream().map(employeeMapper::toDto).toList();
+        return employeeRepository.findAll().stream().map(employeeMapper::toDto).toList();
     }
 
     @Transactional(readOnly = true)
     public List<Employee> getEmployeesBySalaryRange(BigDecimal minSalary, BigDecimal maxSalary) {
         if (minSalary == null && maxSalary == null) {
-            return employeeDao.findAll();
+            return employeeRepository.findAll();
         } else if (minSalary == null) {
-            return employeeDao.findBySalaryLessThanEqual(maxSalary);
+            return employeeRepository.findBySalaryLessThanEqual(maxSalary);
         } else if (maxSalary == null) {
-            return employeeDao.findBySalaryGreaterThanEqual(minSalary);
+            return employeeRepository.findBySalaryGreaterThanEqual(minSalary);
         } else {
-            return employeeDao.findBySalaryBetween(minSalary, maxSalary);
+            return employeeRepository.findBySalaryBetween(minSalary, maxSalary);
         }
     }
 
     @Transactional(readOnly = true)
     public List<EmployeeDto> getEmployeesByDepartmentId(Long departmentId) {
-        List<Employee> employees = employeeDao.findByDepartmentId(departmentId);
+        List<Employee> employees = employeeRepository.findByDepartmentId(departmentId);
         return employees.stream().map(employeeMapper::toDto).toList();
     }
 
     @Transactional(readOnly = true)
     public List<EmployeeDto> getEmployeesByPositionId(Long positionId) {
-        List<Employee> employees = employeeDao.findByPositionId(positionId);
+        List<Employee> employees = employeeRepository.findByPositionId(positionId);
         return employees.stream().map(employeeMapper::toDto).toList();
     }
 
     @Transactional
     public void deleteEmployee(Long id) {
-        if (!employeeDao.existsById(id)) {
+        if (!employeeRepository.existsById(id)) {
             throw new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE + id);
         }
-        employeeDao.deleteById(id);
+        employeeRepository.deleteById(id);
     }
 
     @Transactional
     public Employee updateEmployeeWithoutDto(Employee employee) {
-        return employeeDao.save(employee);
+        return employeeRepository.save(employee);
     }
 }

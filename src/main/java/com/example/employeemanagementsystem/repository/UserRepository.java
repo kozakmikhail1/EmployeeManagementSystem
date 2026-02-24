@@ -5,9 +5,9 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.example.employeemanagementsystem.model.Position;
+import com.example.employeemanagementsystem.model.User;
 
 @Repository
-public interface PositionDao extends JpaRepository<Position, Long> {
-    Optional<Position> findByName(String name);
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByUsername(String username);
 }

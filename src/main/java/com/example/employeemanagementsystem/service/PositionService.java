@@ -11,32 +11,32 @@ import com.example.employeemanagementsystem.dto.get.PositionDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.PositionMapper;
 import com.example.employeemanagementsystem.model.Position;
-import com.example.employeemanagementsystem.repository.PositionDao;
+import com.example.employeemanagementsystem.repository.PositionRepository;
 
 @Service
 public class PositionService {
 
     private static final String POSITION_NOT_FOUND_MESSAGE = "Position not found with id ";
 
-    private final PositionDao positionDao;
+    private final PositionRepository positionRepository;
     private final PositionMapper positionMapper;
 
     @Autowired
-    public PositionService(PositionDao positionDao, PositionMapper positionMapper) {
-        this.positionDao = positionDao;
+    public PositionService(PositionRepository positionRepository, PositionMapper positionMapper) {
+        this.positionRepository = positionRepository;
         this.positionMapper = positionMapper;
     }
 
     @Transactional(readOnly = true)
     public PositionDto getPositionById(Long id) {
-        return positionDao.findById(id)
+        return positionRepository.findById(id)
                 .map(positionMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id));
     }
 
     @Transactional(readOnly = true)
     public List<PositionDto> getAllPositions() {
-        return positionDao.findAll().stream()
+        return positionRepository.findAll().stream()
                 .map(positionMapper::toDto)
                 .toList(); // Or .toList() for Java 16+ unmodifiable list
     }
@@ -44,24 +44,24 @@ public class PositionService {
     @Transactional
     public PositionDto createPosition(PositionCreateDto positionCreateDto) {
         Position position = positionMapper.toEntity(positionCreateDto);
-        Position savedPosition = positionDao.save(position);
+        Position savedPosition = positionRepository.save(position);
         return positionMapper.toDto(savedPosition);
     }
 
     @Transactional
     public PositionDto updatePosition(Long id, PositionCreateDto positionCreateDto) {
-        Position position = positionDao.findById(id)
+        Position position = positionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id));
         positionMapper.updatePositionFromDto(positionCreateDto, position);
-        Position updatedPosition = positionDao.save(position);
+        Position updatedPosition = positionRepository.save(position);
         return positionMapper.toDto(updatedPosition);
     }
 
     @Transactional
     public void deletePosition(Long id) {
-        if (!positionDao.existsById(id)) {
+        if (!positionRepository.existsById(id)) {
             throw new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id);
         }
-        positionDao.deleteById(id);
+        positionRepository.deleteById(id);
     }
 }

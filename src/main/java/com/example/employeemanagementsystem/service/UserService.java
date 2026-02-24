@@ -15,36 +15,36 @@ import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.UserMapper;
 import com.example.employeemanagementsystem.model.Role;
 import com.example.employeemanagementsystem.model.User;
-import com.example.employeemanagementsystem.repository.RoleDao;
-import com.example.employeemanagementsystem.repository.UserDao;
+import com.example.employeemanagementsystem.repository.RoleRepository;
+import com.example.employeemanagementsystem.repository.UserRepository;
 
 @Service
 public class UserService {
 
     private static final String USER_NOT_FOUND_WITH_ID_MESSAGE = "User not found with id ";
-    private final UserDao userDao;
+    private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final RoleDao roleDao;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
 
     @Autowired
     public UserService(
-            UserDao userDao,
+            UserRepository userRepository,
             UserMapper userMapper,
-            RoleDao roleDao,
+            RoleRepository roleRepository,
             PasswordEncoder passwordEncoder,
             RoleService roleService) {
-        this.userDao = userDao;
+        this.userRepository = userRepository;
         this.userMapper = userMapper;
-        this.roleDao = roleDao;
+        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleService = roleService;
     }
 
     @Transactional(readOnly = true)
     public UserDto getUserById(Long id) {
-        return userDao.findById(id)
+        return userRepository.findById(id)
                 .map(userMapper::toDto)
                 .orElseThrow(
                         () -> new ResourceNotFoundException(USER_NOT_FOUND_WITH_ID_MESSAGE + id));
@@ -52,7 +52,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserDto getUserByUsername(String username) {
-        return userDao.findByUsername(username)
+        return userRepository.findByUsername(username)
                 .map(userMapper::toDto)
                 .orElseThrow(
                         () -> new ResourceNotFoundException(
@@ -61,7 +61,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<UserDto> getAllUsers() {
-        return userDao.findAll().stream().map(userMapper::toDto).toList();
+        return userRepository.findAll().stream().map(userMapper::toDto).toList();
     }
 
     @Transactional
@@ -75,7 +75,7 @@ public class UserService {
             userCreateDto.getRoleIds().forEach(
                     roleId -> {
                         Role role =
-                                roleDao.findById(roleId)
+                                roleRepository.findById(roleId)
                                         .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Role not found with id " + roleId));
                         roles.add(role);
@@ -85,14 +85,14 @@ public class UserService {
         }
         user.setRoles(roles);
 
-        User savedUser = userDao.save(user);
+        User savedUser = userRepository.save(user);
         return userMapper.toDto(savedUser);
     }
 
     @Transactional
     public UserDto updateUser(Long id, UserCreateDto userCreateDto) {
         User user =
-                userDao.findById(id)
+                userRepository.findById(id)
                         .orElseThrow(() -> new ResourceNotFoundException(
                                 USER_NOT_FOUND_WITH_ID_MESSAGE + id));
 
@@ -106,7 +106,7 @@ public class UserService {
             Set<Role> newRoles = new HashSet<>();
             for (Long roleId : userCreateDto.getRoleIds()) {
                 Role role =
-                        roleDao.findById(roleId)
+                        roleRepository.findById(roleId)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                         "Role not found with id " + roleId));
                 newRoles.add(role);
@@ -114,15 +114,15 @@ public class UserService {
             user.setRoles(newRoles);
         }
 
-        User updatedUser = userDao.save(user);
+        User updatedUser = userRepository.save(user);
         return userMapper.toDto(updatedUser);
     }
 
     @Transactional
     public void deleteUser(Long id) {
-        userDao.findById(id)
+        userRepository.findById(id)
                 .orElseThrow(
                         () -> new ResourceNotFoundException(USER_NOT_FOUND_WITH_ID_MESSAGE + id));
-        userDao.deleteById(id);
+        userRepository.deleteById(id);
     }
 }
