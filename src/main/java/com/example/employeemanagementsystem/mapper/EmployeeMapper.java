@@ -18,25 +18,25 @@ import com.example.employeemanagementsystem.repository.DepartmentDao;
 import com.example.employeemanagementsystem.repository.PositionDao;
 import com.example.employeemanagementsystem.repository.UserDao;
 
-import lombok.AllArgsConstructor;
-
 @Mapper(componentModel = "spring", uses = {DepartmentMapper.class,
         PositionMapper.class, UserMapper.class},
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public abstract class EmployeeMapper {
 
-        @Autowired
-        public EmployeeMapper(DepartmentDao departmentDao, PositionDao positionDao, UserDao userDao) {
-                this.departmentDao = departmentDao;
-                this.positionDao = positionDao;
-                this.userDao = userDao; 
-        }
     protected DepartmentDao departmentDao;
-
     protected PositionDao positionDao;
-
     protected UserDao userDao;
+
+    public EmployeeMapper() {
+    }
+
+    @Autowired
+    public EmployeeMapper(DepartmentDao departmentDao, PositionDao positionDao, UserDao userDao) {
+        this.departmentDao = departmentDao;
+        this.positionDao = positionDao;
+        this.userDao = userDao;
+    }
 
     @Mapping(target = "id", ignore = true)
     @Mapping(source = "departmentId", target = "department")
@@ -52,7 +52,6 @@ public abstract class EmployeeMapper {
     @Mapping(source = "userId", target = "user")
     public abstract void updateEmployeeFromDto(EmployeeCreateDto dto,
                                                @MappingTarget Employee entity);
-
 
     protected Department departmentFromId(Long departmentId) {
         return departmentId == null ? null

@@ -1,21 +1,22 @@
 package com.example.employeemanagementsystem.service;
 
-import com.example.employeemanagementsystem.repository.RoleDao;
-import com.example.employeemanagementsystem.repository.UserDao;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.employeemanagementsystem.dto.create.UserCreateDto;
 import com.example.employeemanagementsystem.dto.get.UserDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.UserMapper;
 import com.example.employeemanagementsystem.model.Role;
 import com.example.employeemanagementsystem.model.User;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.example.employeemanagementsystem.repository.RoleDao;
+import com.example.employeemanagementsystem.repository.UserDao;
 
 @Service
 public class UserService {
@@ -29,11 +30,11 @@ public class UserService {
 
     @Autowired
     public UserService(
-        UserDao userDao,
-        UserMapper userMapper,
-        RoleDao roleDao,
-        PasswordEncoder passwordEncoder,
-        RoleService roleService) {
+            UserDao userDao,
+            UserMapper userMapper,
+            RoleDao roleDao,
+            PasswordEncoder passwordEncoder,
+            RoleService roleService) {
         this.userDao = userDao;
         this.userMapper = userMapper;
         this.roleDao = roleDao;
@@ -44,16 +45,18 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserDto getUserById(Long id) {
         return userDao.findById(id)
-            .map(userMapper::toDto)
-            .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_WITH_ID_MESSAGE + id));
+                .map(userMapper::toDto)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(USER_NOT_FOUND_WITH_ID_MESSAGE + id));
     }
 
     @Transactional(readOnly = true)
     public UserDto getUserByUsername(String username) {
         return userDao.findByUsername(username)
-            .map(userMapper::toDto)
-            .orElseThrow(
-                () -> new ResourceNotFoundException(USER_NOT_FOUND_WITH_ID_MESSAGE + username));
+                .map(userMapper::toDto)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(
+                                USER_NOT_FOUND_WITH_ID_MESSAGE + username));
     }
 
     @Transactional(readOnly = true)
@@ -70,12 +73,13 @@ public class UserService {
         Set<Role> roles = new HashSet<>();
         if (userCreateDto.getRoleIds() != null && !userCreateDto.getRoleIds().isEmpty()) {
             userCreateDto.getRoleIds().forEach(
-                roleId -> {
-                    Role role =
-                        roleDao.findById(roleId).orElseThrow(() -> new ResourceNotFoundException(
-                            "Role not found with id " + roleId));
-                    roles.add(role);
-                });
+                    roleId -> {
+                        Role role =
+                                roleDao.findById(roleId)
+                                        .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Role not found with id " + roleId));
+                        roles.add(role);
+                    });
         } else {
             roles.add(roleService.findRoleByName("USER"));
         }
@@ -88,9 +92,9 @@ public class UserService {
     @Transactional
     public UserDto updateUser(Long id, UserCreateDto userCreateDto) {
         User user =
-            userDao.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                    USER_NOT_FOUND_WITH_ID_MESSAGE + id));
+                userDao.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                USER_NOT_FOUND_WITH_ID_MESSAGE + id));
 
         userMapper.updateUserFromDto(userCreateDto, user);
 
@@ -102,9 +106,9 @@ public class UserService {
             Set<Role> newRoles = new HashSet<>();
             for (Long roleId : userCreateDto.getRoleIds()) {
                 Role role =
-                    roleDao.findById(roleId)
-                        .orElseThrow(() -> new ResourceNotFoundException(
-                            "Role not found with id " + roleId));
+                        roleDao.findById(roleId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                        "Role not found with id " + roleId));
                 newRoles.add(role);
             }
             user.setRoles(newRoles);
@@ -117,7 +121,8 @@ public class UserService {
     @Transactional
     public void deleteUser(Long id) {
         userDao.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_WITH_ID_MESSAGE + id));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(USER_NOT_FOUND_WITH_ID_MESSAGE + id));
         userDao.deleteById(id);
     }
 }

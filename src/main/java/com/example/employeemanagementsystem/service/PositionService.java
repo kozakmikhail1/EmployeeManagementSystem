@@ -1,16 +1,17 @@
 package com.example.employeemanagementsystem.service;
 
-import com.example.employeemanagementsystem.repository.PositionDao;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.employeemanagementsystem.dto.create.PositionCreateDto;
 import com.example.employeemanagementsystem.dto.get.PositionDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.PositionMapper;
 import com.example.employeemanagementsystem.model.Position;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.example.employeemanagementsystem.repository.PositionDao;
 
 @Service
 public class PositionService {
@@ -29,15 +30,15 @@ public class PositionService {
     @Transactional(readOnly = true)
     public PositionDto getPositionById(Long id) {
         return positionDao.findById(id)
-            .map(positionMapper::toDto)
-            .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id));
+                .map(positionMapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id));
     }
 
     @Transactional(readOnly = true)
     public List<PositionDto> getAllPositions() {
         return positionDao.findAll().stream()
-            .map(positionMapper::toDto)
-            .toList(); // Or .toList() for Java 16+ unmodifiable list
+                .map(positionMapper::toDto)
+                .toList(); // Or .toList() for Java 16+ unmodifiable list
     }
 
     @Transactional
@@ -50,7 +51,7 @@ public class PositionService {
     @Transactional
     public PositionDto updatePosition(Long id, PositionCreateDto positionCreateDto) {
         Position position = positionDao.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id));
+                .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id));
         positionMapper.updatePositionFromDto(positionCreateDto, position);
         Position updatedPosition = positionDao.save(position);
         return positionMapper.toDto(updatedPosition);

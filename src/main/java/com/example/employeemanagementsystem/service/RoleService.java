@@ -1,16 +1,18 @@
 package com.example.employeemanagementsystem.service;
 
-import com.example.employeemanagementsystem.repository.RoleDao;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.employeemanagementsystem.dto.create.RoleCreateDto;
 import com.example.employeemanagementsystem.dto.get.RoleDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.RoleMapper;
 import com.example.employeemanagementsystem.model.Role;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.example.employeemanagementsystem.repository.RoleDao;
 
 @Service
 public class RoleService {
@@ -30,15 +32,16 @@ public class RoleService {
     @Transactional(readOnly = true)
     public RoleDto getRoleById(Long id) {
         return roleDao.findById(id)
-            .map(roleMapper::toDto)
-            .orElseThrow(() -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
+                .map(roleMapper::toDto)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
     }
 
     @Transactional(readOnly = true)
     public List<RoleDto> getAllRoles() {
         return roleDao.findAll().stream()
-            .map(roleMapper::toDto)
-            .collect(Collectors.toList()); 
+                .map(roleMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -51,7 +54,8 @@ public class RoleService {
     @Transactional
     public RoleDto updateRole(Long id, RoleCreateDto roleCreateDto) {
         Role role = roleDao.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
         roleMapper.updateRoleFromDto(roleCreateDto, role);
         Role updatedRole = roleDao.save(role);
         return roleMapper.toDto(updatedRole);
@@ -59,15 +63,16 @@ public class RoleService {
 
     @Transactional
     public void deleteRole(Long id) {
-        roleDao.findById(id) 
-            .orElseThrow(() -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
+        roleDao.findById(id)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
         roleDao.deleteById(id);
     }
 
     @Transactional(readOnly = true)
     public Role findRoleByName(String roleName) {
         return roleDao.findByName(roleName)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_NAME_MESSAGE + roleName));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_NAME_MESSAGE + roleName));
     }
 }

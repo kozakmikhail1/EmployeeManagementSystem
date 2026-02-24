@@ -1,9 +1,9 @@
-
 package com.example.employeemanagementsystem.dto.create;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
+
+import jakarta.validation.constraints.NotBlank;
 
 @Getter
 @Setter

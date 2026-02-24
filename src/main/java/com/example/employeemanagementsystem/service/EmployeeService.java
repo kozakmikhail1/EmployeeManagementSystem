@@ -1,19 +1,21 @@
 package com.example.employeemanagementsystem.service;
 
-import com.example.employeemanagementsystem.repository.EmployeeDao;
-import com.example.employeemanagementsystem.repository.UserDao;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.EmployeeMapper;
 import com.example.employeemanagementsystem.model.Employee;
 import com.example.employeemanagementsystem.model.User;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.example.employeemanagementsystem.repository.EmployeeDao;
+import com.example.employeemanagementsystem.repository.UserDao;
 
 @Service
 public class EmployeeService {
@@ -22,7 +24,7 @@ public class EmployeeService {
 
     private final EmployeeDao employeeDao;
     private final EmployeeMapper employeeMapper;
-    private final UserDao userDao; 
+    private final UserDao userDao;
 
     @Autowired
     public EmployeeService(EmployeeDao employeeDao,
@@ -36,10 +38,11 @@ public class EmployeeService {
     @Transactional
     public EmployeeDto createEmployee(EmployeeCreateDto employeeDto) {
         Employee employee = employeeMapper.toEntity(employeeDto);
-        
+
         User user = userDao.findById(employeeDto.getUserId())
-            .orElseThrow(() ->
-                new ResourceNotFoundException("User not found with id " + employeeDto.getUserId()));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found with id " + employeeDto.getUserId()));
         employee.setUser(user);
         Employee savedEmployee = employeeDao.save(employee);
 
@@ -49,18 +52,19 @@ public class EmployeeService {
     @Transactional
     public EmployeeDto updateEmployee(Long id, EmployeeCreateDto employeeDto) {
         Employee employee =
-            employeeDao
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE + id));
+                employeeDao
+                        .findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                EMPLOYEE_NOT_FOUND_MESSAGE + id));
 
         if (employeeDto.getUserId() != null
-            && !employeeDto.getUserId().equals(employee.getUser().getId())) {
+                && !employeeDto.getUserId().equals(employee.getUser().getId())) {
             User user = userDao
                     .findById(employeeDto.getUserId())
                     .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                            "User not found with id " + employeeDto.getUserId()));
-            employee.setUser(user); 
+                            () -> new ResourceNotFoundException(
+                                    "User not found with id " + employeeDto.getUserId()));
+            employee.setUser(user);
         }
 
         employeeMapper.updateEmployeeFromDto(employeeDto, employee);
@@ -77,8 +81,8 @@ public class EmployeeService {
     @Transactional(readOnly = true)
     public EmployeeDto getEmployeeDtoById(Long id) {
         return employeeDao.findById(id)
-            .map(employeeMapper::toDto)
-            .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE + id));
+                .map(employeeMapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE + id));
     }
 
     @Transactional(readOnly = true)

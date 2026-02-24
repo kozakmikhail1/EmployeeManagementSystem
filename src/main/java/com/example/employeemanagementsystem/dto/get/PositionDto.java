@@ -1,9 +1,9 @@
-
 package com.example.employeemanagementsystem.dto.get;
+
+import java.math.BigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.Setter;
 

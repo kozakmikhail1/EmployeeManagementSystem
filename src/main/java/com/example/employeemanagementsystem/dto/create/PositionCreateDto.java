@@ -1,11 +1,12 @@
-
 package com.example.employeemanagementsystem.dto.create;
+
+import java.math.BigDecimal;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
-import java.math.BigDecimal;
-import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 @Setter

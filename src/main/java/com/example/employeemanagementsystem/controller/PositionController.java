@@ -1,13 +1,7 @@
-
 package com.example.employeemanagementsystem.controller;
 
-import com.example.employeemanagementsystem.dto.create.PositionCreateDto;
-import com.example.employeemanagementsystem.dto.get.EmployeeDto;
-import com.example.employeemanagementsystem.dto.get.PositionDto;
-import com.example.employeemanagementsystem.service.EmployeeService;
-import com.example.employeemanagementsystem.service.PositionService;
-import jakarta.validation.Valid;
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +14,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.employeemanagementsystem.dto.create.PositionCreateDto;
+import com.example.employeemanagementsystem.dto.get.EmployeeDto;
+import com.example.employeemanagementsystem.dto.get.PositionDto;
+import com.example.employeemanagementsystem.service.EmployeeService;
+import com.example.employeemanagementsystem.service.PositionService;
+
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/positions")
 public class PositionController {
 
     private final PositionService positionService;
-    private final EmployeeService employeeService; 
+    private final EmployeeService employeeService;
 
     @Autowired
     public PositionController(PositionService positionService, EmployeeService employeeService) {
@@ -47,14 +49,14 @@ public class PositionController {
 
     @PostMapping
     public ResponseEntity<PositionDto> createPosition(
-        @Valid @RequestBody PositionCreateDto positionCreateDto) {
+            @Valid @RequestBody PositionCreateDto positionCreateDto) {
         PositionDto createdPosition = positionService.createPosition(positionCreateDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPosition);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PositionDto> updatePosition(
-        @PathVariable Long id, @Valid @RequestBody PositionCreateDto positionCreateDto) {
+            @PathVariable Long id, @Valid @RequestBody PositionCreateDto positionCreateDto) {
         PositionDto updatedPosition = positionService.updatePosition(id, positionCreateDto);
         return ResponseEntity.ok(updatedPosition);
     }
