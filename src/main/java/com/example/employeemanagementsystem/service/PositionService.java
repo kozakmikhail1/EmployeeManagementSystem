@@ -37,7 +37,7 @@ public class PositionService {
     public List<PositionDto> getAllPositions() {
         return positionDao.findAll().stream()
             .map(positionMapper::toDto)
-            .collect(Collectors.toList()); // Or .toList() for Java 16+ unmodifiable list
+            .toList(); // Or .toList() for Java 16+ unmodifiable list
     }
 
     @Transactional

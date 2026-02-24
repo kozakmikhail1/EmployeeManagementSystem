@@ -58,7 +58,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<UserDto> getAllUsers() {
-        return userDao.findAll().stream().map(userMapper::toDto).collect(Collectors.toList());
+        return userDao.findAll().stream().map(userMapper::toDto).toList();
     }
 
     @Transactional

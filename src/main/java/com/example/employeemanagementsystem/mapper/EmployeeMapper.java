@@ -24,9 +24,14 @@ import lombok.AllArgsConstructor;
         PositionMapper.class, UserMapper.class},
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-@AllArgsConstructor
 public abstract class EmployeeMapper {
 
+        @Autowired
+        public EmployeeMapper(DepartmentDao departmentDao, PositionDao positionDao, UserDao userDao) {
+                this.departmentDao = departmentDao;
+                this.positionDao = positionDao;
+                this.userDao = userDao; 
+        }
     protected DepartmentDao departmentDao;
 
     protected PositionDao positionDao;
