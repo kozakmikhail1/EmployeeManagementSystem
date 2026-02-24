@@ -18,19 +18,19 @@ import com.example.employeemanagementsystem.repository.DepartmentDao;
 import com.example.employeemanagementsystem.repository.PositionDao;
 import com.example.employeemanagementsystem.repository.UserDao;
 
+import lombok.AllArgsConstructor;
+
 @Mapper(componentModel = "spring", uses = {DepartmentMapper.class,
         PositionMapper.class, UserMapper.class},
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+@AllArgsConstructor
 public abstract class EmployeeMapper {
 
-    @Autowired
     protected DepartmentDao departmentDao;
 
-    @Autowired
     protected PositionDao positionDao;
 
-    @Autowired
     protected UserDao userDao;
 
     @Mapping(target = "id", ignore = true)
