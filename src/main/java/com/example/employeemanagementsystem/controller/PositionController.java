@@ -49,7 +49,7 @@ public class PositionController {
 
     @PostMapping
     public ResponseEntity<PositionDto> createPosition(
-            @Valid @RequestBody PositionCreateDto positionCreateDto) {
+        @Valid @RequestBody PositionCreateDto positionCreateDto) {
         PositionDto createdPosition = positionService.createPosition(positionCreateDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPosition);
     }
@@ -57,7 +57,7 @@ public class PositionController {
     //
     @PutMapping("/{id}")
     public ResponseEntity<PositionDto> updatePosition(
-            @PathVariable Long id, @Valid @RequestBody PositionCreateDto positionCreateDto) {
+        @PathVariable Long id, @Valid @RequestBody PositionCreateDto positionCreateDto) {
         PositionDto updatedPosition = positionService.updatePosition(id, positionCreateDto);
         return ResponseEntity.ok(updatedPosition);
     }

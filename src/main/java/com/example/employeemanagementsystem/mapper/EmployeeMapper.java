@@ -37,17 +37,17 @@ public class EmployeeMapper {
 
         if (dto.getDepartmentId() != null) {
             employee.setDepartment(departmentRepository.findById(dto.getDepartmentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
         }
 
         if (dto.getPositionId() != null) {
             employee.setPosition(positionRepository.findById(dto.getPositionId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
+                .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
         }
 
         if (dto.getUserId() != null) {
             employee.setUser(userRepository.findById(dto.getUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found")));
         }
 
         return employee;
@@ -108,17 +108,17 @@ public class EmployeeMapper {
 
         if (dto.getDepartmentId() != null) {
             entity.setDepartment(departmentRepository.findById(dto.getDepartmentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
         }
 
         if (dto.getPositionId() != null) {
             entity.setPosition(positionRepository.findById(dto.getPositionId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
+                .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
         }
 
         if (dto.getUserId() != null) {
             entity.setUser(userRepository.findById(dto.getUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found")));
         }
     }
 }

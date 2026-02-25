@@ -25,8 +25,8 @@ public class DepartmentService {
 
     @Autowired
     public DepartmentService(
-            DepartmentRepository departmentRepository, DepartmentMapper departmentMapper,
-            UserService userService) {
+        DepartmentRepository departmentRepository, DepartmentMapper departmentMapper,
+        UserService userService) {
         this.departmentRepository = departmentRepository;
         this.departmentMapper = departmentMapper;
         this.userService = userService; // Внедряем UserService
@@ -35,17 +35,17 @@ public class DepartmentService {
     @Transactional(readOnly = true)
     public DepartmentDto getDepartmentById(Long id) {
         return departmentRepository
-                .findById(id)
-                .map(departmentMapper::toDto)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
+            .findById(id)
+            .map(departmentMapper::toDto)
+            .orElseThrow(
+                () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
     }
 
     @Transactional(readOnly = true)
     public List<DepartmentDto> getAllDepartments() {
         return departmentRepository.findAll().stream()
-                .map(departmentMapper::toDto)
-                .toList();
+            .map(departmentMapper::toDto)
+            .toList();
     }
 
     @Transactional
@@ -58,9 +58,9 @@ public class DepartmentService {
     @Transactional
     public DepartmentDto updateDepartment(Long id, DepartmentCreateDto departmentDto) {
         Department department = departmentRepository
-                .findById(id)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
+            .findById(id)
+            .orElseThrow(
+                () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
         departmentMapper.updateDepartmentFromDto(departmentDto, department);
         Department updatedDepartment = departmentRepository.save(department);
         return departmentMapper.toDto(updatedDepartment);
@@ -69,8 +69,8 @@ public class DepartmentService {
     @Transactional
     public void deleteDepartment(Long id) {
         Department department = departmentRepository.findById(id)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
+            .orElseThrow(
+                () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
 
         // Сначала удаляем User для каждого Employee
         for (Employee employee : department.getEmployees()) {

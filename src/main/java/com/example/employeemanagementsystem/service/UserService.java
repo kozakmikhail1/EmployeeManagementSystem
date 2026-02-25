@@ -30,11 +30,11 @@ public class UserService {
 
     @Autowired
     public UserService(
-            UserRepository userRepository,
-            UserMapper userMapper,
-            RoleRepository roleRepository,
-            PasswordEncoder passwordEncoder,
-            RoleService roleService) {
+        UserRepository userRepository,
+        UserMapper userMapper,
+        RoleRepository roleRepository,
+        PasswordEncoder passwordEncoder,
+        RoleService roleService) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.roleRepository = roleRepository;
@@ -45,18 +45,18 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserDto getUserById(Long id) {
         return userRepository.findById(id)
-                .map(userMapper::toDto)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(USER_NOT_FOUND_WITH_ID_MESSAGE + id));
+            .map(userMapper::toDto)
+            .orElseThrow(
+                () -> new ResourceNotFoundException(USER_NOT_FOUND_WITH_ID_MESSAGE + id));
     }
 
     @Transactional(readOnly = true)
     public UserDto getUserByUsername(String username) {
         return userRepository.findByUsername(username)
-                .map(userMapper::toDto)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                USER_NOT_FOUND_WITH_ID_MESSAGE + username));
+            .map(userMapper::toDto)
+            .orElseThrow(
+                () -> new ResourceNotFoundException(
+                    USER_NOT_FOUND_WITH_ID_MESSAGE + username));
     }
 
     @Transactional(readOnly = true)
@@ -73,13 +73,13 @@ public class UserService {
         Set<Role> roles = new HashSet<>();
         if (userCreateDto.getRoleIds() != null && !userCreateDto.getRoleIds().isEmpty()) {
             userCreateDto.getRoleIds().forEach(
-                    roleId -> {
-                        Role role =
-                                roleRepository.findById(roleId)
-                                        .orElseThrow(() -> new ResourceNotFoundException(
-                                                "Role not found with id " + roleId));
-                        roles.add(role);
-                    });
+                roleId -> {
+                    Role role =
+                        roleRepository.findById(roleId)
+                            .orElseThrow(() -> new ResourceNotFoundException(
+                                "Role not found with id " + roleId));
+                    roles.add(role);
+                });
         } else {
             roles.add(roleService.findRoleByName("USER"));
         }
@@ -92,9 +92,9 @@ public class UserService {
     @Transactional
     public UserDto updateUser(Long id, UserCreateDto userCreateDto) {
         User user =
-                userRepository.findById(id)
-                        .orElseThrow(() -> new ResourceNotFoundException(
-                                USER_NOT_FOUND_WITH_ID_MESSAGE + id));
+            userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    USER_NOT_FOUND_WITH_ID_MESSAGE + id));
 
         userMapper.updateUserFromDto(userCreateDto, user);
 
@@ -106,9 +106,9 @@ public class UserService {
             Set<Role> newRoles = new HashSet<>();
             for (Long roleId : userCreateDto.getRoleIds()) {
                 Role role =
-                        roleRepository.findById(roleId)
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                        "Role not found with id " + roleId));
+                    roleRepository.findById(roleId)
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                            "Role not found with id " + roleId));
                 newRoles.add(role);
             }
             user.setRoles(newRoles);
@@ -121,8 +121,8 @@ public class UserService {
     @Transactional
     public void deleteUser(Long id) {
         userRepository.findById(id)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(USER_NOT_FOUND_WITH_ID_MESSAGE + id));
+            .orElseThrow(
+                () -> new ResourceNotFoundException(USER_NOT_FOUND_WITH_ID_MESSAGE + id));
         userRepository.deleteById(id);
     }
 }

@@ -40,9 +40,9 @@ public class EmployeeService {
         Employee employee = employeeMapper.toEntity(employeeDto);
 
         User user = userRepository.findById(employeeDto.getUserId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "User not found with id " + employeeDto.getUserId()));
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "User not found with id " + employeeDto.getUserId()));
         employee.setUser(user);
         Employee savedEmployee = employeeRepository.save(employee);
 
@@ -52,18 +52,18 @@ public class EmployeeService {
     @Transactional
     public EmployeeDto updateEmployee(Long id, EmployeeCreateDto employeeDto) {
         Employee employee =
-                employeeRepository
-                        .findById(id)
-                        .orElseThrow(() -> new ResourceNotFoundException(
-                                EMPLOYEE_NOT_FOUND_MESS + id));
+            employeeRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    EMPLOYEE_NOT_FOUND_MESS + id));
 
         if (employeeDto.getUserId() != null
-                && !employeeDto.getUserId().equals(employee.getUser().getId())) {
+            && !employeeDto.getUserId().equals(employee.getUser().getId())) {
             User user = userRepository
-                    .findById(employeeDto.getUserId())
-                    .orElseThrow(
-                            () -> new ResourceNotFoundException(
-                                    "User not found with id " + employeeDto.getUserId()));
+                .findById(employeeDto.getUserId())
+                .orElseThrow(
+                    () -> new ResourceNotFoundException(
+                        "User not found with id " + employeeDto.getUserId()));
             employee.setUser(user);
         }
 
@@ -80,8 +80,8 @@ public class EmployeeService {
     @Transactional(readOnly = true)
     public EmployeeDto getEmployeeDtoById(Long id) {
         return employeeRepository.findById(id)
-                .map(employeeMapper::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESS + id));
+            .map(employeeMapper::toDto)
+            .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESS + id));
     }
 
     @Transactional(readOnly = true)
