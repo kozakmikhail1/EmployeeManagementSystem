@@ -35,6 +35,7 @@ public class RoleController {
     public ResponseEntity<RoleDto> getRoleById(@PathVariable Long id) {
         RoleDto roleDto = roleService.getRoleById(id);
         return ResponseEntity.ok(roleDto);
+
     }
 
     @GetMapping
