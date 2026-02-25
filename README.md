@@ -106,7 +106,7 @@
 - 📊 **Анализ качества:** SonarCloud автоматический анализ кода
 - 🔍 **Проверки:** Компиляция, тесты, статический анализ
 
-Результаты анализа: [SonarCloud Dashboard](https://sonarcloud.io)
+Результаты анализа: [SonarCloud Dashboard](https://sonarcloud.io/summary/overall?id=kozakmikhail1_EmployeeManagementSystem&branch=main)
 
 ---
 
