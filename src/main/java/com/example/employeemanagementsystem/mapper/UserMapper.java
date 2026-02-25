@@ -10,8 +10,8 @@ import com.example.employeemanagementsystem.dto.get.UserDto;
 import com.example.employeemanagementsystem.model.User;
 
 @Mapper(
-        componentModel = "spring",
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    componentModel = "spring",
+    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public abstract class UserMapper {
 
     @Mapping(target = "id", ignore = true)

@@ -43,36 +43,36 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeDto);
     }
 
-    @GetMapping("/")
+    @GetMapping()
     public ResponseEntity<List<EmployeeDto>> getAllEmployees(
-            @RequestParam(value = "min_salary", required = false) BigDecimal minSalary,
-            @RequestParam(value = "max_salary", required = false) BigDecimal maxSalary) {
+        @RequestParam(value = "min_salary", required = false) BigDecimal minSalary,
+        @RequestParam(value = "max_salary", required = false) BigDecimal maxSalary) {
 
         List<Employee> employees = employeeService.getEmployeesBySalaryRange(minSalary, maxSalary);
         List<EmployeeDto> employeeDto = employees.stream()
-                .map(employeeMapper::toDto)
-                .toList();
+            .map(employeeMapper::toDto)
+            .toList();
 
         return ResponseEntity.ok(employeeDto);
     }
 
-    @GetMapping
+    @GetMapping("/")
     public ResponseEntity<List<EmployeeDto>> getAllEmployeesByDepartment(
-            @RequestParam(value = "departmentId", defaultValue = "1") Long departmentId) {
+        @RequestParam(value = "departmentId", defaultValue = "1") Long departmentId) {
         List<EmployeeDto> employees = employeeService.getEmployeesByDepartmentId(departmentId);
         return ResponseEntity.ok(employees);
     }
 
     @PostMapping
     public ResponseEntity<EmployeeDto> createEmployee(
-            @Valid @RequestBody EmployeeCreateDto employeeDto) {
+        @Valid @RequestBody EmployeeCreateDto employeeDto) {
         EmployeeDto createdEmployee = employeeService.createEmployee(employeeDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<EmployeeDto> updateEmployee(
-            @PathVariable Long id, @Valid @RequestBody EmployeeCreateDto employeeDto) {
+        @PathVariable Long id, @Valid @RequestBody EmployeeCreateDto employeeDto) {
         EmployeeDto updatedEmployee = employeeService.updateEmployee(id, employeeDto);
         return ResponseEntity.ok(updatedEmployee);
     }

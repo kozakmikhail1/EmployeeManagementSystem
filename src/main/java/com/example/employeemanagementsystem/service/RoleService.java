@@ -31,16 +31,16 @@ public class RoleService {
     @Transactional(readOnly = true)
     public RoleDto getRoleById(Long id) {
         return roleRepository.findById(id)
-                .map(roleMapper::toDto)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
+            .map(roleMapper::toDto)
+            .orElseThrow(
+                () -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
     }
 
     @Transactional(readOnly = true)
     public List<RoleDto> getAllRoles() {
         return roleRepository.findAll().stream()
-                .map(roleMapper::toDto)
-                .toList();
+            .map(roleMapper::toDto)
+            .toList();
     }
 
     @Transactional
@@ -53,8 +53,8 @@ public class RoleService {
     @Transactional
     public RoleDto updateRole(Long id, RoleCreateDto roleCreateDto) {
         Role role = roleRepository.findById(id)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
+            .orElseThrow(
+                () -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
         roleMapper.updateRoleFromDto(roleCreateDto, role);
         Role updatedRole = roleRepository.save(role);
         return roleMapper.toDto(updatedRole);
@@ -63,15 +63,15 @@ public class RoleService {
     @Transactional
     public void deleteRole(Long id) {
         roleRepository.findById(id)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
+            .orElseThrow(
+                () -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
         roleRepository.deleteById(id);
     }
 
     @Transactional(readOnly = true)
     public Role findRoleByName(String roleName) {
         return roleRepository.findByName(roleName)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_NAME_MESSAGE + roleName));
+            .orElseThrow(() ->
+                new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_NAME_MESSAGE + roleName));
     }
 }

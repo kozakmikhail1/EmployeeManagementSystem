@@ -18,7 +18,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     List<Employee> findBySalaryLessThanEqual(BigDecimal maxSalary);
 
-    @EntityGraph("department")
     List<Employee> findByDepartmentId(Long departmentId);
 
     @EntityGraph("position")

@@ -50,17 +50,17 @@ public class DepartmentController {
 
     @PostMapping
     public ResponseEntity<DepartmentDto> createDepartment(
-            @Valid @RequestBody DepartmentCreateDto departmentDto) {
+        @Valid @RequestBody DepartmentCreateDto departmentDto) {
         DepartmentDto createdDepartment = departmentService.createDepartment(departmentDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdDepartment);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<DepartmentDto> updateDepartment(
-            @PathVariable Long id,
-            @Valid @RequestBody DepartmentCreateDto departmentDetails) {
+        @PathVariable Long id,
+        @Valid @RequestBody DepartmentCreateDto departmentDetails) {
         DepartmentDto updatedDepartment = departmentService.updateDepartment(id,
-                departmentDetails);
+            departmentDetails);
         return ResponseEntity.ok(updatedDepartment);
     }
 
@@ -72,7 +72,7 @@ public class DepartmentController {
 
     @GetMapping("/{departmentId}/employees")
     public ResponseEntity<List<EmployeeDto>> getEmployeesByDepartment(
-            @PathVariable Long departmentId) {
+        @PathVariable Long departmentId) {
         List<EmployeeDto> employees = employeeService.getEmployeesByDepartmentId(departmentId);
         return ResponseEntity.ok(employees);
     }

@@ -11,7 +11,7 @@ import com.example.employeemanagementsystem.repository.PositionRepository;
 import com.example.employeemanagementsystem.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
-@Component  // Используем обычный Spring компонент вместо маппера
+@Component
 @RequiredArgsConstructor
 public class EmployeeMapper {
 

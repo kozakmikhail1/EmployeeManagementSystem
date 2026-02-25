@@ -30,15 +30,15 @@ public class PositionService {
     @Transactional(readOnly = true)
     public PositionDto getPositionById(Long id) {
         return positionRepository.findById(id)
-                .map(positionMapper::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id));
+            .map(positionMapper::toDto)
+            .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id));
     }
 
     @Transactional(readOnly = true)
     public List<PositionDto> getAllPositions() {
         return positionRepository.findAll().stream()
-                .map(positionMapper::toDto)
-                .toList(); // Or .toList() for Java 16+ unmodifiable list
+            .map(positionMapper::toDto)
+            .toList(); // Or .toList() for Java 16+ unmodifiable list
     }
 
     @Transactional
@@ -51,7 +51,7 @@ public class PositionService {
     @Transactional
     public PositionDto updatePosition(Long id, PositionCreateDto positionCreateDto) {
         Position position = positionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id));
+            .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id));
         positionMapper.updatePositionFromDto(positionCreateDto, position);
         Position updatedPosition = positionRepository.save(position);
         return positionMapper.toDto(updatedPosition);

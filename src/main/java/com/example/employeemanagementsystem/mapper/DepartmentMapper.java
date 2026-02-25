@@ -10,7 +10,7 @@ import com.example.employeemanagementsystem.dto.get.DepartmentDto;
 import com.example.employeemanagementsystem.model.Department;
 
 @Mapper(componentModel = "spring",
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface DepartmentMapper {
 
 
@@ -25,5 +25,4 @@ public interface DepartmentMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "employees", ignore = true)
     void updateDepartmentFromDto(DepartmentCreateDto dto, @MappingTarget Department entity);
-
 }

@@ -10,7 +10,7 @@ import com.example.employeemanagementsystem.dto.get.PositionDto;
 import com.example.employeemanagementsystem.model.Position;
 
 @Mapper(componentModel = "spring",
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface PositionMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "employees", ignore = true)

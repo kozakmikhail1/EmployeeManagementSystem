@@ -10,7 +10,7 @@ import com.example.employeemanagementsystem.dto.get.RoleDto;
 import com.example.employeemanagementsystem.model.Role;
 
 @Mapper(componentModel = "spring",
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface RoleMapper {
 
     @Mapping(target = "id", ignore = true)

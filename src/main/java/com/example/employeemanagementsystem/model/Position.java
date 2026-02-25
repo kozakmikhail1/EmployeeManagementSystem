@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -39,7 +38,6 @@ public class Position {
     private BigDecimal minSalary;
     private BigDecimal maxSalary;
 
-    @OneToMany(mappedBy = "position", cascade = {CascadeType.PERSIST, CascadeType.MERGE},
-            orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "position", orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Employee> employees;
 }
