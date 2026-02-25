@@ -43,17 +43,24 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeDto);
     }
 
-    @GetMapping
+    @GetMapping("/")
     public ResponseEntity<List<EmployeeDto>> getAllEmployees(
             @RequestParam(value = "min_salary", required = false) BigDecimal minSalary,
             @RequestParam(value = "max_salary", required = false) BigDecimal maxSalary) {
 
         List<Employee> employees = employeeService.getEmployeesBySalaryRange(minSalary, maxSalary);
-        List<EmployeeDto> employeeDtos = employees.stream()
+        List<EmployeeDto> employeeDto = employees.stream()
                 .map(employeeMapper::toDto)
                 .toList();
 
-        return ResponseEntity.ok(employeeDtos);
+        return ResponseEntity.ok(employeeDto);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<EmployeeDto>> getAllEmployeesByDepartment(
+            @RequestParam(value = "departmentId", defaultValue = "1") Long departmentId) {
+        List<EmployeeDto> employees = employeeService.getEmployeesByDepartmentId(departmentId);
+        return ResponseEntity.ok(employees);
     }
 
     @PostMapping

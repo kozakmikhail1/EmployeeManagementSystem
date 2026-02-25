@@ -20,7 +20,7 @@ import com.example.employeemanagementsystem.repository.UserRepository;
 @Service
 public class EmployeeService {
 
-    private static final String EMPLOYEE_NOT_FOUND_MESSAGE = "Employee not found with id ";
+    private static final String EMPLOYEE_NOT_FOUND_MESS = "Employee not found with id ";
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
@@ -55,7 +55,7 @@ public class EmployeeService {
                 employeeRepository
                         .findById(id)
                         .orElseThrow(() -> new ResourceNotFoundException(
-                                EMPLOYEE_NOT_FOUND_MESSAGE + id));
+                                EMPLOYEE_NOT_FOUND_MESS + id));
 
         if (employeeDto.getUserId() != null
                 && !employeeDto.getUserId().equals(employee.getUser().getId())) {
@@ -72,7 +72,6 @@ public class EmployeeService {
         return employeeMapper.toDto(updatedEmployee);
     }
 
-
     @Transactional(readOnly = true)
     public Optional<Employee> getEmployeeById(Long id) {
         return employeeRepository.findById(id);
@@ -82,7 +81,7 @@ public class EmployeeService {
     public EmployeeDto getEmployeeDtoById(Long id) {
         return employeeRepository.findById(id)
                 .map(employeeMapper::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE + id));
+                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESS + id));
     }
 
     @Transactional(readOnly = true)
@@ -118,7 +117,7 @@ public class EmployeeService {
     @Transactional
     public void deleteEmployee(Long id) {
         if (!employeeRepository.existsById(id)) {
-            throw new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE + id);
+            throw new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESS + id);
         }
         employeeRepository.deleteById(id);
     }

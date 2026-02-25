@@ -9,5 +9,6 @@ import com.example.employeemanagementsystem.model.Position;
 
 @Repository
 public interface PositionRepository extends JpaRepository<Position, Long> {
+
     Optional<Position> findByName(String name);
 }

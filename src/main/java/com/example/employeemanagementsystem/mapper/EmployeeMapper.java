@@ -1,7 +1,6 @@
 package com.example.employeemanagementsystem.mapper;
 
 import org.springframework.stereotype.Component;
-import lombok.RequiredArgsConstructor;
 
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
@@ -10,6 +9,7 @@ import com.example.employeemanagementsystem.model.Employee;
 import com.example.employeemanagementsystem.repository.DepartmentRepository;
 import com.example.employeemanagementsystem.repository.PositionRepository;
 import com.example.employeemanagementsystem.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 
 @Component  // Используем обычный Spring компонент вместо маппера
 @RequiredArgsConstructor
@@ -23,7 +23,9 @@ public class EmployeeMapper {
     private final UserMapper userMapper;
 
     public Employee toEntity(EmployeeCreateDto dto) {
-        if (dto == null) return null;
+        if (dto == null) {
+            return null;
+        }
 
         Employee employee = new Employee();
         employee.setFirstName(dto.getFirstName());
@@ -52,7 +54,9 @@ public class EmployeeMapper {
     }
 
     public EmployeeDto toDto(Employee entity) {
-        if (entity == null) return null;
+        if (entity == null) {
+            return null;
+        }
 
         EmployeeDto dto = new EmployeeDto();
         dto.setId(entity.getId());
@@ -79,14 +83,28 @@ public class EmployeeMapper {
     }
 
     public void updateEmployeeFromDto(EmployeeCreateDto dto, Employee entity) {
-        if (dto == null || entity == null) return;
+        if (dto == null || entity == null) {
+            return;
+        }
 
-        if (dto.getFirstName() != null) entity.setFirstName(dto.getFirstName());
-        if (dto.getLastName() != null) entity.setLastName(dto.getLastName());
-        if (dto.getEmail() != null) entity.setEmail(dto.getEmail());
-        if (dto.getHireDate() != null) entity.setHireDate(dto.getHireDate());
-        if (dto.getSalary() != null) entity.setSalary(dto.getSalary());
-        if (dto.getIsActive() != null) entity.setIsActive(dto.getIsActive());
+        if (dto.getFirstName() != null) {
+            entity.setFirstName(dto.getFirstName());
+        }
+        if (dto.getLastName() != null) {
+            entity.setLastName(dto.getLastName());
+        }
+        if (dto.getEmail() != null) {
+            entity.setEmail(dto.getEmail());
+        }
+        if (dto.getHireDate() != null) {
+            entity.setHireDate(dto.getHireDate());
+        }
+        if (dto.getSalary() != null) {
+            entity.setSalary(dto.getSalary());
+        }
+        if (dto.getIsActive() != null) {
+            entity.setIsActive(dto.getIsActive());
+        }
 
         if (dto.getDepartmentId() != null) {
             entity.setDepartment(departmentRepository.findById(dto.getDepartmentId())

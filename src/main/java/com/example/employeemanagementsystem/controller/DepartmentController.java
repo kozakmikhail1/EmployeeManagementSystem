@@ -70,7 +70,6 @@ public class DepartmentController {
         return ResponseEntity.noContent().build();
     }
 
-
     @GetMapping("/{departmentId}/employees")
     public ResponseEntity<List<EmployeeDto>> getEmployeesByDepartment(
             @PathVariable Long departmentId) {
