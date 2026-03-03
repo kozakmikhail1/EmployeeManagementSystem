@@ -18,23 +18,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
-import com.example.employeemanagementsystem.mapper.EmployeeMapper;
-import com.example.employeemanagementsystem.model.Employee;
 import com.example.employeemanagementsystem.service.EmployeeService;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 
 @RestController
 @RequestMapping("/api/employees")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
-    private final EmployeeMapper employeeMapper;
 
     @Autowired
-    public EmployeeController(EmployeeService employeeService, EmployeeMapper employeeMapper) {
+    public EmployeeController(EmployeeService employeeService) {
         this.employeeService = employeeService;
-        this.employeeMapper = employeeMapper;
     }
 
     @GetMapping("/{id}")
@@ -45,34 +42,32 @@ public class EmployeeController {
 
     @GetMapping()
     public ResponseEntity<List<EmployeeDto>> getAllEmployees(
-        @RequestParam(value = "min_salary", required = false) BigDecimal minSalary,
-        @RequestParam(value = "max_salary", required = false) BigDecimal maxSalary) {
+            @RequestParam(value = "min_salary", required = false) BigDecimal minSalary,
+            @RequestParam(value = "max_salary", required = false) BigDecimal maxSalary) {
 
-        List<Employee> employees = employeeService.getEmployeesBySalaryRange(minSalary, maxSalary);
-        List<EmployeeDto> employeeDto = employees.stream()
-            .map(employeeMapper::toDto)
-            .toList();
+        List<EmployeeDto> employees = employeeService.getEmployeesBySalaryRange(minSalary, maxSalary);
 
-        return ResponseEntity.ok(employeeDto);
+        return ResponseEntity.ok(employees);
     }
 
     @GetMapping("/")
     public ResponseEntity<List<EmployeeDto>> getAllEmployeesByDepartment(
-        @RequestParam(value = "departmentId", defaultValue = "1") Long departmentId) {
+            @Positive 
+            @RequestParam(value = "departmentId", defaultValue = "1") Long departmentId) {
         List<EmployeeDto> employees = employeeService.getEmployeesByDepartmentId(departmentId);
         return ResponseEntity.ok(employees);
     }
 
     @PostMapping
     public ResponseEntity<EmployeeDto> createEmployee(
-        @Valid @RequestBody EmployeeCreateDto employeeDto) {
+            @Valid @RequestBody EmployeeCreateDto employeeDto) {
         EmployeeDto createdEmployee = employeeService.createEmployee(employeeDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<EmployeeDto> updateEmployee(
-        @PathVariable Long id, @Valid @RequestBody EmployeeCreateDto employeeDto) {
+            @PathVariable Long id, @Valid @RequestBody EmployeeCreateDto employeeDto) {
         EmployeeDto updatedEmployee = employeeService.updateEmployee(id, employeeDto);
         return ResponseEntity.ok(updatedEmployee);
     }

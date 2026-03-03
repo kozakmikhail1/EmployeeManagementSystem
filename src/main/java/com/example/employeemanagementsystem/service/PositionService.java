@@ -38,7 +38,7 @@ public class PositionService {
     public List<PositionDto> getAllPositions() {
         return positionRepository.findAll().stream()
             .map(positionMapper::toDto)
-            .toList(); // Or .toList() for Java 16+ unmodifiable list
+            .toList(); 
     }
 
     @Transactional

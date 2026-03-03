@@ -90,15 +90,15 @@ public class EmployeeService {
     }
 
     @Transactional(readOnly = true)
-    public List<Employee> getEmployeesBySalaryRange(BigDecimal minSalary, BigDecimal maxSalary) {
+    public List<EmployeeDto> getEmployeesBySalaryRange(BigDecimal minSalary, BigDecimal maxSalary) {
         if (minSalary == null && maxSalary == null) {
-            return employeeRepository.findAll();
+            return employeeMapper.toDto(employeeRepository.findAll());
         } else if (minSalary == null) {
-            return employeeRepository.findBySalaryLessThanEqual(maxSalary);
+            return employeeMapper.toDto(employeeRepository.findBySalaryLessThanEqual(maxSalary));
         } else if (maxSalary == null) {
-            return employeeRepository.findBySalaryGreaterThanEqual(minSalary);
+            return employeeMapper.toDto(employeeRepository.findBySalaryGreaterThanEqual(minSalary));
         } else {
-            return employeeRepository.findBySalaryBetween(minSalary, maxSalary);
+            return employeeMapper.toDto(employeeRepository.findBySalaryBetween(minSalary, maxSalary));
         }
     }
 

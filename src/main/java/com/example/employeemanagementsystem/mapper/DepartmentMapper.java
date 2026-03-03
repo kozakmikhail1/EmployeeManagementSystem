@@ -9,8 +9,11 @@ import com.example.employeemanagementsystem.dto.create.DepartmentCreateDto;
 import com.example.employeemanagementsystem.dto.get.DepartmentDto;
 import com.example.employeemanagementsystem.model.Department;
 
+import io.micrometer.common.lang.NonNullApi;
+
 @Mapper(componentModel = "spring",
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@NonNullApi
 public interface DepartmentMapper {
 
 

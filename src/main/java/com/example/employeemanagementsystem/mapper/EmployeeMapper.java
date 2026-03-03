@@ -1,5 +1,8 @@
 package com.example.employeemanagementsystem.mapper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
@@ -9,10 +12,13 @@ import com.example.employeemanagementsystem.model.Employee;
 import com.example.employeemanagementsystem.repository.DepartmentRepository;
 import com.example.employeemanagementsystem.repository.PositionRepository;
 import com.example.employeemanagementsystem.repository.UserRepository;
+
+import io.micrometer.common.lang.NonNullApi;
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
+@NonNullApi
 public class EmployeeMapper {
 
     private final DepartmentRepository departmentRepository;
@@ -37,17 +43,17 @@ public class EmployeeMapper {
 
         if (dto.getDepartmentId() != null) {
             employee.setDepartment(departmentRepository.findById(dto.getDepartmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
         }
 
         if (dto.getPositionId() != null) {
             employee.setPosition(positionRepository.findById(dto.getPositionId())
-                .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
+                    .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
         }
 
         if (dto.getUserId() != null) {
             employee.setUser(userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found")));
         }
 
         return employee;
@@ -82,6 +88,19 @@ public class EmployeeMapper {
         return dto;
     }
 
+    public List<EmployeeDto> toDto(List<Employee> entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        List<EmployeeDto> employeeDtoList = new ArrayList<>();
+
+        for (Employee x : entity) {
+            employeeDtoList.add(toDto(x));
+        }
+        return employeeDtoList;
+    }
+
     public void updateEmployeeFromDto(EmployeeCreateDto dto, Employee entity) {
         if (dto == null || entity == null) {
             return;
@@ -108,17 +127,17 @@ public class EmployeeMapper {
 
         if (dto.getDepartmentId() != null) {
             entity.setDepartment(departmentRepository.findById(dto.getDepartmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
         }
 
         if (dto.getPositionId() != null) {
             entity.setPosition(positionRepository.findById(dto.getPositionId())
-                .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
+                    .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
         }
 
         if (dto.getUserId() != null) {
             entity.setUser(userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found")));
         }
     }
 }
