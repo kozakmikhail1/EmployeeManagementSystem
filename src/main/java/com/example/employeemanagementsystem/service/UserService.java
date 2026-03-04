@@ -13,6 +13,7 @@ import com.example.employeemanagementsystem.dto.create.UserCreateDto;
 import com.example.employeemanagementsystem.dto.get.UserDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.UserMapper;
+import com.example.employeemanagementsystem.model.Employee;
 import com.example.employeemanagementsystem.model.Role;
 import com.example.employeemanagementsystem.model.User;
 import com.example.employeemanagementsystem.repository.RoleRepository;
@@ -27,6 +28,7 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
+    private final EmployeeService employeeService;
 
     @Autowired
     public UserService(
@@ -34,12 +36,14 @@ public class UserService {
         UserMapper userMapper,
         RoleRepository roleRepository,
         PasswordEncoder passwordEncoder,
-        RoleService roleService) {
+        RoleService roleService,
+        EmployeeService employeeService) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleService = roleService;
+        this.employeeService = employeeService;
     }
 
     @Transactional(readOnly = true)
@@ -123,6 +127,8 @@ public class UserService {
         userRepository.findById(id)
             .orElseThrow(
                 () -> new ResourceNotFoundException(USER_NOT_FOUND_WITH_ID_MESSAGE + id));
+        Employee employee = employeeService.getEmployeeByUserId(id);
+        employee.setUser(null);
         userRepository.deleteById(id);
     }
 }

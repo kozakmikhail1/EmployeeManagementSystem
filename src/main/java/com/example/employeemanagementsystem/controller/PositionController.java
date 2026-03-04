@@ -54,7 +54,7 @@ public class PositionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPosition);
     }
 
-    //
+    
     @PutMapping("/{id}")
     public ResponseEntity<PositionDto> updatePosition(
         @PathVariable Long id, @Valid @RequestBody PositionCreateDto positionCreateDto) {

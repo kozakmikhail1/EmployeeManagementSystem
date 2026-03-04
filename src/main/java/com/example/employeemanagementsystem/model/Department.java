@@ -2,12 +2,6 @@ package com.example.employeemanagementsystem.model;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,6 +11,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
@@ -37,7 +36,7 @@ public class Department {
     private String description;
 
     @OneToMany(mappedBy = "department",
-        cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+        cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
         fetch = FetchType.LAZY)
     private List<Employee> employees;
 }
