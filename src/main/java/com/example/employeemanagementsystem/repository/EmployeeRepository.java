@@ -27,7 +27,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
         "position",
         "user.role"
     })
-    Employee findByIdEmployee(Long id);
+
 
     List<Employee> findBySalaryGreaterThanEqual(BigDecimal minSalary);
 

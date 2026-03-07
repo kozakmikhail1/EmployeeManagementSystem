@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
+import com.example.employeemanagementsystem.dto.create.EmployeeWithUserCreateDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
 import com.example.employeemanagementsystem.service.EmployeeService;
 
@@ -52,8 +53,7 @@ public class EmployeeController {
 
     @GetMapping("/")
     public ResponseEntity<List<EmployeeDto>> getAllEmployeesByDepartment(
-            @Positive 
-            @RequestParam(value = "departmentId", defaultValue = "1") Long departmentId) {
+            @Positive @RequestParam(value = "departmentId", defaultValue = "1") Long departmentId) {
         List<EmployeeDto> employees = employeeService.getEmployeesByDepartmentId(departmentId);
         return ResponseEntity.ok(employees);
     }
@@ -63,6 +63,16 @@ public class EmployeeController {
             @Valid @RequestBody EmployeeCreateDto employeeDto) {
         EmployeeDto createdEmployee = employeeService.createEmployee(employeeDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
+    }
+
+    @PostMapping("/user")
+    public ResponseEntity<EmployeeDto> createEmployeeWithUser(
+            @Valid @RequestBody EmployeeWithUserCreateDto employeeDto) {
+
+        EmployeeDto employeeDtores = employeeService.createEmployeeWithUser(
+                employeeDto.getEmployeeCreateDto(),
+                employeeDto.getUserCreateDto());
+        return ResponseEntity.status(HttpStatus.CREATED).body(employeeDtores);
     }
 
     @PutMapping("/{id}")

@@ -13,7 +13,7 @@
         <module name="MemberName"/>
         <module name="MethodName"/>
         <module name="ParameterName"/>
-        <module name="LocalVariableName"/>
+        <module name=   "LocalVariableName"/>
         <module name="ConstantName"/>
         <module name="PackageName"/>
 

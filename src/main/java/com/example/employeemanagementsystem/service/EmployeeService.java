@@ -9,11 +9,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
+import com.example.employeemanagementsystem.dto.create.UserCreateDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.EmployeeMapper;
+import com.example.employeemanagementsystem.mapper.UserMapper;
 import com.example.employeemanagementsystem.model.Employee;
 import com.example.employeemanagementsystem.model.User;
+import com.example.employeemanagementsystem.repository.DepartmentRepository;
 import com.example.employeemanagementsystem.repository.EmployeeRepository;
 import com.example.employeemanagementsystem.repository.UserRepository;
 
@@ -23,16 +26,22 @@ public class EmployeeService {
     private static final String EMPLOYEE_NOT_FOUND_MESS = "Employee not found with id ";
 
     private final EmployeeRepository employeeRepository;
+    private final DepartmentRepository departmentRepository;
     private final EmployeeMapper employeeMapper;
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Autowired
     public EmployeeService(EmployeeRepository employeeRepository,
             EmployeeMapper employeeMapper,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            DepartmentRepository departmentRepository,
+            UserMapper userMapper) {
         this.employeeRepository = employeeRepository;
         this.employeeMapper = employeeMapper;
         this.userRepository = userRepository;
+        this.departmentRepository = departmentRepository;
+        this.userMapper = userMapper;
     }
 
     @Transactional
@@ -46,6 +55,19 @@ public class EmployeeService {
         Employee savedEmployee = employeeRepository.save(employee);
 
         return employeeMapper.toDto(savedEmployee);
+    }
+
+    @Transactional
+    public EmployeeDto createEmployeeWithUser(EmployeeCreateDto employeeDto, UserCreateDto userDto) {
+        Employee employee = employeeMapper.toEntity(employeeDto);
+        User user = userMapper.toEntity(userDto);
+
+        employee.setUser(user);
+        user.setEmployee(employee);
+        Employee savedEmployee = employeeRepository.save(employee);
+
+        EmployeeDto result = employeeMapper.toDto(savedEmployee);
+        return result;
     }
 
     @Transactional
@@ -77,7 +99,9 @@ public class EmployeeService {
 
     @Transactional(readOnly = true)
     public EmployeeDto getEmployeeDtoById(Long id) {
-        return employeeRepository.findByIdEmployee(id).;
+        return employeeMapper.toDto(employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        EMPLOYEE_NOT_FOUND_MESS + id)));
     }
 
     @Transactional(readOnly = true)

@@ -10,6 +10,7 @@ import com.example.employeemanagementsystem.dto.create.DepartmentCreateDto;
 import com.example.employeemanagementsystem.dto.get.DepartmentDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.DepartmentMapper;
+import com.example.employeemanagementsystem.mapper.EmployeeMapper;
 import com.example.employeemanagementsystem.model.Department;
 import com.example.employeemanagementsystem.model.Employee;
 import com.example.employeemanagementsystem.repository.DepartmentRepository;
@@ -21,31 +22,34 @@ public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
     private final DepartmentMapper departmentMapper;
-    private final UserService userService; // Добавляем UserService
+    private final EmployeeMapper employeeMapper;
+    private final UserService userService;
 
     @Autowired
     public DepartmentService(
-        DepartmentRepository departmentRepository, DepartmentMapper departmentMapper,
-        UserService userService) {
+            DepartmentRepository departmentRepository, DepartmentMapper departmentMapper,
+            EmployeeMapper employeeMapper,
+            UserService userService) {
         this.departmentRepository = departmentRepository;
         this.departmentMapper = departmentMapper;
         this.userService = userService; // Внедряем UserService
+        this.employeeMapper = employeeMapper;
     }
 
     @Transactional(readOnly = true)
     public DepartmentDto getDepartmentById(Long id) {
         return departmentRepository
-            .findById(id)
-            .map(departmentMapper::toDto)
-            .orElseThrow(
-                () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
+                .findById(id)
+                .map(departmentMapper::toDto)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
     }
 
     @Transactional(readOnly = true)
     public List<DepartmentDto> getAllDepartments() {
         return departmentRepository.findAll().stream()
-            .map(departmentMapper::toDto)
-            .toList();
+                .map(departmentMapper::toDto)
+                .toList();
     }
 
     @Transactional
@@ -55,12 +59,30 @@ public class DepartmentService {
         return departmentMapper.toDto(savedDepartment);
     }
 
+    // @Transactional
+    // public DepartmentDto createDepartmentWithEmployee(
+    //         DepartmentCreateDto departmentDto,
+    //         List<EmployeeCreateDto> employeeListDto) {
+
+    //     Department department = departmentMapper.toEntity(departmentDto);
+    //     List<Employee> employeesArray = employeeMapper.toEntity(employeeListDto);
+
+    //     department.setEmployees(employeesArray);
+
+    //     for (Employee x : employeesArray) {
+    //         x.setDepartment(department);
+    //     }
+    //     departmentRepository.save(department);
+
+    //     return departmentMapper.toDto(department);
+    // }
+
     @Transactional
     public DepartmentDto updateDepartment(Long id, DepartmentCreateDto departmentDto) {
         Department department = departmentRepository
-            .findById(id)
-            .orElseThrow(
-                () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
+                .findById(id)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
         departmentMapper.updateDepartmentFromDto(departmentDto, department);
         Department updatedDepartment = departmentRepository.save(department);
         return departmentMapper.toDto(updatedDepartment);
@@ -69,8 +91,8 @@ public class DepartmentService {
     @Transactional
     public void deleteDepartment(Long id) {
         Department department = departmentRepository.findById(id)
-            .orElseThrow(
-                () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
 
         // Сначала удаляем User для каждого Employee
         for (Employee employee : department.getEmployees()) {

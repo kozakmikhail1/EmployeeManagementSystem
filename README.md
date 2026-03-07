@@ -4,8 +4,8 @@
 
 **Employee Management System** — современное веб-приложение для автоматизации управления персоналом в организации.
 
-[![Java](https://img.shields.io/badge/Java-23-orange)](https://www.oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.x-brightgreen)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.x-brightgreen)](https://spring.io/projects/spring-boot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)](https://www.postgresql.org/)
 [![Maven](https://img.shields.io/badge/Maven-3.9.x-red)](https://maven.apache.org/)
 [![SonarCloud](https://img.shields.io/badge/SonarCloud-Quality%20Gate-brightgreen)](https://sonarcloud.io/)
@@ -76,8 +76,8 @@
 
 | Компонент | Технология |
 |-----------|------------|
-| **Язык программирования** | Java 23 |
-| **Фреймворк** | Spring Boot 4.x |
+| **Язык программирования** | Java 21 |
+| **Фреймворк** | Spring Boot 3.2.x |
 | **База данных** | PostgreSQL |
 | **Сборщик проекта** | Maven |
 | **Архитектура** | REST API |
@@ -87,7 +87,7 @@
 
 ## 📦 Требования
 
-- **Java Development Kit (JDK)** версии 23 или выше
+- **Java Development Kit (JDK)** версии 21 или выше
 - **PostgreSQL** 16+
 - **Maven** 3.9.x (или использование встроенного wrapper)
 

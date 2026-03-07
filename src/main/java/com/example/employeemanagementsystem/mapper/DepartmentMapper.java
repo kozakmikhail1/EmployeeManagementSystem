@@ -16,14 +16,11 @@ import io.micrometer.common.lang.NonNullApi;
 @NonNullApi
 public interface DepartmentMapper {
 
-
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "employees", ignore = true)
     Department toEntity(DepartmentCreateDto dto);
 
-
     DepartmentDto toDto(Department entity);
-
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "employees", ignore = true)

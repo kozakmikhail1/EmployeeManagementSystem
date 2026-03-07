@@ -59,6 +59,19 @@ public class EmployeeMapper {
         return employee;
     }
 
+    public List<Employee> toEntity(List<EmployeeCreateDto> entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        List<Employee> employeeList = new ArrayList<>();
+
+        for (EmployeeCreateDto x : entity) {
+            employeeList.add(toEntity(x));
+        }
+        return employeeList;
+    }
+
     public EmployeeDto toDto(Employee entity) {
         if (entity == null) {
             return null;
@@ -140,4 +153,6 @@ public class EmployeeMapper {
                     .orElseThrow(() -> new ResourceNotFoundException("User not found")));
         }
     }
+
+    
 }
