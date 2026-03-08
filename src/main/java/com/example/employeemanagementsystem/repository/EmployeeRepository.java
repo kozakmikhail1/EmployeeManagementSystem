@@ -52,4 +52,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findByPositionId(Long positionId);
 
     boolean existsByPositionId(Long positionId);
+
+    boolean existsByUserId(Long userId);
+
+    boolean existsByUserIdAndIdNot(Long userId, Long id);
 }

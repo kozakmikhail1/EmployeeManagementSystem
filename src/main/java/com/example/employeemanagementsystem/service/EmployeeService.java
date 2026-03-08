@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
 import com.example.employeemanagementsystem.dto.create.UserCreateDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
+import com.example.employeemanagementsystem.exception.ResourceConflictException;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.EmployeeMapper;
 import com.example.employeemanagementsystem.mapper.UserMapper;
@@ -25,6 +26,8 @@ import com.example.employeemanagementsystem.repository.UserRepository;
 public class EmployeeService {
 
     private static final String EMPLOYEE_NOT_FOUND_MESS = "Employee not found with id ";
+    private static final String USER_ALREADY_ASSIGNED_MESSAGE =
+            "User is already assigned to another employee. User id ";
 
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
@@ -53,6 +56,10 @@ public class EmployeeService {
         Employee employee = employeeMapper.toEntity(employeeDto);
 
         if (employeeDto.getUserId() != null) {
+            if (employeeRepository.existsByUserId(employeeDto.getUserId())) {
+                throw new ResourceConflictException(
+                        USER_ALREADY_ASSIGNED_MESSAGE + employeeDto.getUserId());
+            }
             User user = userRepository.findById(employeeDto.getUserId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "User not found with id " + employeeDto.getUserId()));
@@ -91,6 +98,10 @@ public class EmployeeService {
                         EMPLOYEE_NOT_FOUND_MESS + id));
 
         if (employeeDto.getUserId() != null) {
+            if (employeeRepository.existsByUserIdAndIdNot(employeeDto.getUserId(), id)) {
+                throw new ResourceConflictException(
+                        USER_ALREADY_ASSIGNED_MESSAGE + employeeDto.getUserId());
+            }
             User user = userRepository
                     .findById(employeeDto.getUserId())
                     .orElseThrow(
