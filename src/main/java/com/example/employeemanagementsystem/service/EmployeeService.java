@@ -18,7 +18,6 @@ import com.example.employeemanagementsystem.mapper.EmployeeMapper;
 import com.example.employeemanagementsystem.mapper.UserMapper;
 import com.example.employeemanagementsystem.model.Employee;
 import com.example.employeemanagementsystem.model.User;
-import com.example.employeemanagementsystem.repository.DepartmentRepository;
 import com.example.employeemanagementsystem.repository.EmployeeRepository;
 import com.example.employeemanagementsystem.repository.UserRepository;
 
@@ -39,7 +38,6 @@ public class EmployeeService {
     public EmployeeService(EmployeeRepository employeeRepository,
             EmployeeMapper employeeMapper,
             UserRepository userRepository,
-            DepartmentRepository departmentRepository,
             UserMapper userMapper,
             PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;

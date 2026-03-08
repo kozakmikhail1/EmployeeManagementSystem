@@ -10,7 +10,6 @@ import com.example.employeemanagementsystem.dto.create.DepartmentCreateDto;
 import com.example.employeemanagementsystem.dto.get.DepartmentDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.DepartmentMapper;
-import com.example.employeemanagementsystem.mapper.EmployeeMapper;
 import com.example.employeemanagementsystem.model.Department;
 import com.example.employeemanagementsystem.model.Employee;
 import com.example.employeemanagementsystem.repository.DepartmentRepository;
@@ -27,11 +26,10 @@ public class DepartmentService {
     @Autowired
     public DepartmentService(
             DepartmentRepository departmentRepository, DepartmentMapper departmentMapper,
-            EmployeeMapper employeeMapper,
             UserService userService) {
         this.departmentRepository = departmentRepository;
         this.departmentMapper = departmentMapper;
-        this.userService = userService; 
+        this.userService = userService;
     }
 
     @Transactional(readOnly = true)
@@ -76,7 +74,7 @@ public class DepartmentService {
 
         for (Employee employee : department.getEmployees()) {
             if (employee.getUser() != null) {
-                userService.deleteUser(employee.getUser().getId()); 
+                userService.deleteUser(employee.getUser().getId());
             }
         }
 

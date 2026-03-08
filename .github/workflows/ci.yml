@@ -39,3 +39,4 @@ jobs:
           -Dsonar.host.url=https://sonarcloud.io
           -Dsonar.organization=kozakmikhail1
           -Dsonar.projectKey=kozakmikhail1_EmployeeManagementSystem
+          -Dsonar.coverage.exclusions=**/*
