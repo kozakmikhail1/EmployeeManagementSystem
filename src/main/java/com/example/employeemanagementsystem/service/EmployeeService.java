@@ -70,7 +70,6 @@ public class EmployeeService {
 
     @Transactional
     public EmployeeDto createEmployeeWithUser(EmployeeCreateDto employeeDto, UserCreateDto userDto) {
-        boolean checkWorkTrans = false;
         Employee employee = employeeMapper.toEntity(employeeDto);
         User user = userMapper.toEntity(userDto);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
@@ -80,12 +79,7 @@ public class EmployeeService {
 
         Employee savedEmployee = employeeRepository.save(employee);
 
-        if (checkWorkTrans) {
-            throw new RuntimeException("Eror");
-        }
-
-        EmployeeDto result = employeeMapper.toDto(savedEmployee);
-        return result;
+        return employeeMapper.toDto(savedEmployee);
     }
 
     @Transactional
@@ -96,6 +90,10 @@ public class EmployeeService {
                         EMPLOYEE_NOT_FOUND_MESS + id));
 
         if (employeeDto.getUserId() != null) {
+            if (employeeRepository.existsByUserIdAndIdNot(employeeDto.getUserId(), id)) {
+                throw new ResourceConflictException(
+                        USER_ALREADY_ASSIGNED_MESSAGE + employeeDto.getUserId());
+            }
 
             User user = userRepository
                     .findById(employeeDto.getUserId())

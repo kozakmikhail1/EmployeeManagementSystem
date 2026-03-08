@@ -42,7 +42,7 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeDto);
     }
 
-    @GetMapping()
+    @GetMapping(params = "!departmentId")
     public ResponseEntity<List<EmployeeDto>> getAllEmployees(
             @RequestParam(value = "min_salary", required = false) BigDecimal minSalary,
             @RequestParam(value = "max_salary", required = false) BigDecimal maxSalary) {
@@ -52,7 +52,7 @@ public class EmployeeController {
         return ResponseEntity.ok(employees);
     }
 
-    @GetMapping("/")
+    @GetMapping(params = "departmentId")
     public ResponseEntity<List<EmployeeDto>> getAllEmployeesByDepartment(
             @Positive @RequestParam(value = "departmentId", defaultValue = "1") Long departmentId) {
         List<EmployeeDto> employees = employeeService.getEmployeesByDepartmentId(departmentId);
