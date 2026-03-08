@@ -25,12 +25,17 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @EntityGraph(attributePaths = {
         "department",
         "position",
-        "user.role"
+        "user",
+        "user.roles"
     })
-
-
     List<Employee> findBySalaryGreaterThanEqual(BigDecimal minSalary);
 
+    @EntityGraph(attributePaths = {
+        "department",
+        "position",
+        "user",
+        "user.roles"
+    })
     List<Employee> findBySalaryLessThanEqual(BigDecimal maxSalary);
 
     @EntityGraph(attributePaths = "department")
@@ -38,6 +43,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     Employee findByUserId(Long id);
 
-    @EntityGraph("position")
+    @EntityGraph(attributePaths = {
+        "department",
+        "position",
+        "user",
+        "user.roles"
+    })
     List<Employee> findByPositionId(Long positionId);
+
+    boolean existsByPositionId(Long positionId);
 }

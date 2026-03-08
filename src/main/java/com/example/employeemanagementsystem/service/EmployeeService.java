@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,28 +31,33 @@ public class EmployeeService {
     private final EmployeeMapper employeeMapper;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public EmployeeService(EmployeeRepository employeeRepository,
             EmployeeMapper employeeMapper,
             UserRepository userRepository,
             DepartmentRepository departmentRepository,
-            UserMapper userMapper) {
+            UserMapper userMapper,
+            PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
         this.employeeMapper = employeeMapper;
         this.userRepository = userRepository;
         this.departmentRepository = departmentRepository;
         this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
     public EmployeeDto createEmployee(EmployeeCreateDto employeeDto) {
         Employee employee = employeeMapper.toEntity(employeeDto);
 
-        User user = userRepository.findById(employeeDto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "User not found with id " + employeeDto.getUserId()));
-        employee.setUser(user);
+        if (employeeDto.getUserId() != null) {
+            User user = userRepository.findById(employeeDto.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "User not found with id " + employeeDto.getUserId()));
+            employee.setUser(user);
+        }
         Employee savedEmployee = employeeRepository.save(employee);
 
         return employeeMapper.toDto(savedEmployee);
@@ -59,12 +65,19 @@ public class EmployeeService {
 
     @Transactional
     public EmployeeDto createEmployeeWithUser(EmployeeCreateDto employeeDto, UserCreateDto userDto) {
+        boolean checkWorkTrans = false;
         Employee employee = employeeMapper.toEntity(employeeDto);
         User user = userMapper.toEntity(userDto);
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
 
         employee.setUser(user);
         user.setEmployee(employee);
+
         Employee savedEmployee = employeeRepository.save(employee);
+
+        if (checkWorkTrans) {
+            throw new RuntimeException("Eror");
+        }
 
         EmployeeDto result = employeeMapper.toDto(savedEmployee);
         return result;
@@ -77,8 +90,7 @@ public class EmployeeService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         EMPLOYEE_NOT_FOUND_MESS + id));
 
-        if (employeeDto.getUserId() != null
-                && !employeeDto.getUserId().equals(employee.getUser().getId())) {
+        if (employeeDto.getUserId() != null) {
             User user = userRepository
                     .findById(employeeDto.getUserId())
                     .orElseThrow(

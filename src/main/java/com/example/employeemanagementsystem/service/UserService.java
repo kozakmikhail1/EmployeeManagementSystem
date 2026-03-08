@@ -128,7 +128,9 @@ public class UserService {
             .orElseThrow(
                 () -> new ResourceNotFoundException(USER_NOT_FOUND_WITH_ID_MESSAGE + id));
         Employee employee = employeeService.getEmployeeByUserId(id);
-        employee.setUser(null);
+        if (employee != null) {
+            employee.setUser(null);
+        }
         userRepository.deleteById(id);
     }
 }

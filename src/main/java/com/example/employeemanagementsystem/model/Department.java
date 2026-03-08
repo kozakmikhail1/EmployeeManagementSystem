@@ -36,7 +36,8 @@ public class Department {
     private String description;
 
     @OneToMany(mappedBy = "department",
-        cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},
+        cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE},
+        orphanRemoval = true,
         fetch = FetchType.LAZY)
     private List<Employee> employees;
 }

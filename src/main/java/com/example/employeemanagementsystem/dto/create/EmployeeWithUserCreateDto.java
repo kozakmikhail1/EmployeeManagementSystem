@@ -1,5 +1,7 @@
 package com.example.employeemanagementsystem.dto.create;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,6 +9,11 @@ import lombok.Setter;
 @Setter
 public class EmployeeWithUserCreateDto {
 
-    EmployeeCreateDto employeeCreateDto;
-    UserCreateDto userCreateDto;
+    @Valid
+    @NotNull(message = "Employee payload cannot be null")
+    private EmployeeCreateDto employeeCreateDto;
+
+    @Valid
+    @NotNull(message = "User payload cannot be null")
+    private UserCreateDto userCreateDto;
 }

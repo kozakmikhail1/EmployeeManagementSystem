@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -56,20 +57,19 @@ public class DepartmentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdDepartment);
     }
 
-    // @PostMapping("-employees")
-    // public ResponseEntity<DepartmentDto> createDepartmentWithEmployee(
-    //         @Valid @RequestBody DepartmentCreateWithEmployeesDto department) {
-
-    //     DepartmentDto dto = departmentService.createDepartmentWithEmployee(
-    //         department.getDepartment(),
-    //         department.getEmployee());
-    //     return ResponseEntity.status(HttpStatus.CREATED).body(dto);
-    // }
-
     @PutMapping("/{id}")
     public ResponseEntity<DepartmentDto> updateDepartment(
             @PathVariable Long id,
             @Valid @RequestBody DepartmentCreateDto departmentDetails) {
+        DepartmentDto updatedDepartment = departmentService.updateDepartment(id,
+                departmentDetails);
+        return ResponseEntity.ok(updatedDepartment);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<DepartmentDto> patchDepartment(
+            @PathVariable Long id,
+            @RequestBody DepartmentCreateDto departmentDetails) {
         DepartmentDto updatedDepartment = departmentService.updateDepartment(id,
                 departmentDetails);
         return ResponseEntity.ok(updatedDepartment);

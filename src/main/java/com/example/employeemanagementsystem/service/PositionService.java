@@ -8,22 +8,31 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.employeemanagementsystem.dto.create.PositionCreateDto;
 import com.example.employeemanagementsystem.dto.get.PositionDto;
+import com.example.employeemanagementsystem.exception.ResourceConflictException;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.PositionMapper;
 import com.example.employeemanagementsystem.model.Position;
+import com.example.employeemanagementsystem.repository.EmployeeRepository;
 import com.example.employeemanagementsystem.repository.PositionRepository;
 
 @Service
 public class PositionService {
 
     private static final String POSITION_NOT_FOUND_MESSAGE = "Position not found with id ";
+    private static final String POSITION_HAS_EMPLOYEES_MESSAGE =
+            "Cannot delete position with assigned employees. Position id ";
 
     private final PositionRepository positionRepository;
+    private final EmployeeRepository employeeRepository;
     private final PositionMapper positionMapper;
 
     @Autowired
-    public PositionService(PositionRepository positionRepository, PositionMapper positionMapper) {
+    public PositionService(
+            PositionRepository positionRepository,
+            EmployeeRepository employeeRepository,
+            PositionMapper positionMapper) {
         this.positionRepository = positionRepository;
+        this.employeeRepository = employeeRepository;
         this.positionMapper = positionMapper;
     }
 
@@ -61,6 +70,9 @@ public class PositionService {
     public void deletePosition(Long id) {
         if (!positionRepository.existsById(id)) {
             throw new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id);
+        }
+        if (employeeRepository.existsByPositionId(id)) {
+            throw new ResourceConflictException(POSITION_HAS_EMPLOYEES_MESSAGE + id);
         }
         positionRepository.deleteById(id);
     }
