@@ -70,9 +70,7 @@ public class DepartmentController {
     public ResponseEntity<DepartmentDto> patchDepartment(
             @PathVariable Long id,
             @RequestBody DepartmentCreateDto departmentDetails) {
-        DepartmentDto updatedDepartment = departmentService.updateDepartment(id,
-                departmentDetails);
-        return ResponseEntity.ok(updatedDepartment);
+        return updateDepartment(id, departmentDetails);
     }
 
 

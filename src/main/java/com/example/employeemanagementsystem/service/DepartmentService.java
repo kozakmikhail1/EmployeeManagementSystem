@@ -22,7 +22,6 @@ public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
     private final DepartmentMapper departmentMapper;
-    private final EmployeeMapper employeeMapper;
     private final UserService userService;
 
     @Autowired
@@ -32,8 +31,7 @@ public class DepartmentService {
             UserService userService) {
         this.departmentRepository = departmentRepository;
         this.departmentMapper = departmentMapper;
-        this.userService = userService; // Внедряем UserService
-        this.employeeMapper = employeeMapper;
+        this.userService = userService; 
     }
 
     @Transactional(readOnly = true)
@@ -59,24 +57,6 @@ public class DepartmentService {
         return departmentMapper.toDto(savedDepartment);
     }
 
-    // @Transactional
-    // public DepartmentDto createDepartmentWithEmployee(
-    //         DepartmentCreateDto departmentDto,
-    //         List<EmployeeCreateDto> employeeListDto) {
-
-    //     Department department = departmentMapper.toEntity(departmentDto);
-    //     List<Employee> employeesArray = employeeMapper.toEntity(employeeListDto);
-
-    //     department.setEmployees(employeesArray);
-
-    //     for (Employee x : employeesArray) {
-    //         x.setDepartment(department);
-    //     }
-    //     departmentRepository.save(department);
-
-    //     return departmentMapper.toDto(department);
-    // }
-
     @Transactional
     public DepartmentDto updateDepartment(Long id, DepartmentCreateDto departmentDto) {
         Department department = departmentRepository
@@ -94,14 +74,12 @@ public class DepartmentService {
                 .orElseThrow(
                         () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
 
-        // Сначала удаляем User для каждого Employee
         for (Employee employee : department.getEmployees()) {
             if (employee.getUser() != null) {
-                userService.deleteUser(employee.getUser().getId()); // Используем UserService
+                userService.deleteUser(employee.getUser().getId()); 
             }
         }
 
-        // Теперь безопасно удаляем Department (Employee удалятся каскадно)
         departmentRepository.delete(department);
     }
 }

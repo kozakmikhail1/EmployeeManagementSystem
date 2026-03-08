@@ -60,8 +60,7 @@ public class RoleController {
     @PatchMapping("/{id}")
     public ResponseEntity<RoleDto> patchRole(@PathVariable Long id,
                                              @RequestBody RoleCreateDto roleCreateDto) {
-        RoleDto updatedRole = roleService.updateRole(id, roleCreateDto);
-        return ResponseEntity.ok(updatedRole);
+        return updateRole(id, roleCreateDto);
     }
 
     @DeleteMapping("/{id}")

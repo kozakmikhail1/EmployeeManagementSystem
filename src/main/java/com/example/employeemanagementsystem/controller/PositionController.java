@@ -66,8 +66,7 @@ public class PositionController {
     @PatchMapping("/{id}")
     public ResponseEntity<PositionDto> patchPosition(
         @PathVariable Long id, @RequestBody PositionCreateDto positionCreateDto) {
-        PositionDto updatedPosition = positionService.updatePosition(id, positionCreateDto);
-        return ResponseEntity.ok(updatedPosition);
+        return updatePosition(id, positionCreateDto);
     }
 
     @DeleteMapping("/{id}")

@@ -30,7 +30,6 @@ public class EmployeeService {
             "User is already assigned to another employee. User id ";
 
     private final EmployeeRepository employeeRepository;
-    private final DepartmentRepository departmentRepository;
     private final EmployeeMapper employeeMapper;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -46,7 +45,6 @@ public class EmployeeService {
         this.employeeRepository = employeeRepository;
         this.employeeMapper = employeeMapper;
         this.userRepository = userRepository;
-        this.departmentRepository = departmentRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
     }
@@ -98,10 +96,7 @@ public class EmployeeService {
                         EMPLOYEE_NOT_FOUND_MESS + id));
 
         if (employeeDto.getUserId() != null) {
-            if (employeeRepository.existsByUserIdAndIdNot(employeeDto.getUserId(), id)) {
-                throw new ResourceConflictException(
-                        USER_ALREADY_ASSIGNED_MESSAGE + employeeDto.getUserId());
-            }
+
             User user = userRepository
                     .findById(employeeDto.getUserId())
                     .orElseThrow(
@@ -111,8 +106,7 @@ public class EmployeeService {
         }
 
         employeeMapper.updateEmployeeFromDto(employeeDto, employee);
-        Employee updatedEmployee = employeeRepository.save(employee);
-        return employeeMapper.toDto(updatedEmployee);
+        return employeeMapper.toDto(employeeRepository.save(employee));
     }
 
     @Transactional(readOnly = true)
