@@ -87,15 +87,15 @@ public class EmployeeMapper {
         dto.setIsActive(entity.getIsActive());
 
         if (entity.getDepartment() != null) {
-            dto.setDepartment(departmentMapper.toDto(entity.getDepartment()));
+            dto.setDepartmentId(entity.getDepartment().getId());
         }
 
         if (entity.getPosition() != null) {
-            dto.setPosition(positionMapper.toDto(entity.getPosition()));
+            dto.setPositionId(entity.getPosition().getId());
         }
 
         if (entity.getUser() != null) {
-            dto.setUser(userMapper.toDto(entity.getUser()));
+            dto.setUserId(entity.getUser().getId());
         }
 
         return dto;

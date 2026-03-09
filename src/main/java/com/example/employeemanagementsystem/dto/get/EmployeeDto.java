@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,10 +25,11 @@ public class EmployeeDto {
     private Boolean isActive;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private DepartmentDto department;
+    private Long departmentId;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private PositionDto position;
+    private Long positionId;
+    
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private UserDto user;
+    private Long userId;
 }

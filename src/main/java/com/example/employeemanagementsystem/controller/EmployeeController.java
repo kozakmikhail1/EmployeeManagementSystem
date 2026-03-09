@@ -59,6 +59,13 @@ public class EmployeeController {
         return ResponseEntity.ok(employees);
     }
 
+    @GetMapping()
+    public ResponseEntity<List<EmployeeDto>> getAllEmployeesByPosition(
+            @Positive @RequestParam(value = "positionId", defaultValue = "1") Long positionId) {
+        List<EmployeeDto> employees = employeeService.getEmployeesByPositionId(positionId);
+        return ResponseEntity.ok(employees);
+    }
+
     @PostMapping
     public ResponseEntity<EmployeeDto> createEmployee(
             @Valid @RequestBody EmployeeCreateDto employeeDto) {
