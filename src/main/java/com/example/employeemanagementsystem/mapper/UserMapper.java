@@ -15,7 +15,7 @@ import com.example.employeemanagementsystem.model.User;
 public abstract class UserMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "employee", ignore = true)
+    @Mapping(target = "employee", ignore = true)    
     @Mapping(target = "roles", ignore = true)
     public abstract User toEntity(UserCreateDto userCreateDto);
 

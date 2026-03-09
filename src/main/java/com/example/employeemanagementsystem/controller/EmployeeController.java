@@ -59,9 +59,9 @@ public class EmployeeController {
         return ResponseEntity.ok(employees);
     }
 
-    @GetMapping()
+    @GetMapping("/")
     public ResponseEntity<List<EmployeeDto>> getAllEmployeesByPosition(
-            @Positive @RequestParam(value = "positionId", defaultValue = "1") Long positionId) {
+            @Positive @RequestParam(value = "positionId") Long positionId) {
         List<EmployeeDto> employees = employeeService.getEmployeesByPositionId(positionId);
         return ResponseEntity.ok(employees);
     }

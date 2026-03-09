@@ -3,7 +3,6 @@ package com.example.employeemanagementsystem.repository;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,18 +13,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     List<Employee> findBySalaryBetween(BigDecimal minSalary, BigDecimal maxSalary);
 
-    List<Employee> findAll();
-
     List<Employee> findBySalaryGreaterThanEqual(BigDecimal minSalary);
 
     List<Employee> findBySalaryLessThanEqual(BigDecimal maxSalary);
 
-    @EntityGraph(attributePaths = "department")
     List<Employee> findByDepartmentId(Long departmentId);
 
     Employee findByUserId(Long id);
 
-    @EntityGraph(attributePaths = "position")
     List<Employee> findByPositionId(Long positionId);
 
     boolean existsByPositionId(Long positionId);

@@ -68,7 +68,7 @@ public class DepartmentService {
 
     @Transactional
     public void deleteDepartment(Long id) {
-        Department department = departmentRepository.findById(id)
+        Department department = departmentRepository.findWithEmployeesById(id)
                 .orElseThrow(
                         () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
 
