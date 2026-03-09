@@ -5,11 +5,11 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import lombok.Getter;
-import lombok.Setter;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -25,5 +25,5 @@ public class UserCreateDto {
     private String password;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private Set<Long> roleIds;
+    private Set<Long> rolesId;
 }

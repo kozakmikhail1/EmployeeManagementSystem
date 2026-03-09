@@ -18,7 +18,6 @@ public abstract class UserMapper {
     @Mapping(target = "employee", ignore = true)    
     @Mapping(target = "roles", ignore = true)
     public abstract User toEntity(UserCreateDto userCreateDto);
-
     @Mapping(target = "employee", ignore = true)
     public abstract UserDto toDto(User user);
 

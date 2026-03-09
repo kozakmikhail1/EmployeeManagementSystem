@@ -75,8 +75,8 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(userCreateDto.getPassword()));
 
         Set<Role> roles = new HashSet<>();
-        if (userCreateDto.getRoleIds() != null && !userCreateDto.getRoleIds().isEmpty()) {
-            userCreateDto.getRoleIds().forEach(
+        if (userCreateDto.getRolesId() != null && !userCreateDto.getRolesId().isEmpty()) {
+            userCreateDto.getRolesId().forEach(
                 roleId -> {
                     Role role =
                         roleRepository.findById(roleId)
@@ -106,9 +106,9 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(userCreateDto.getPassword()));
         }
 
-        if (userCreateDto.getRoleIds() != null) {
+        if (userCreateDto.getRolesId() != null) {
             Set<Role> newRoles = new HashSet<>();
-            for (Long roleId : userCreateDto.getRoleIds()) {
+            for (Long roleId : userCreateDto.getRolesId()) {
                 Role role =
                     roleRepository.findById(roleId)
                         .orElseThrow(() -> new ResourceNotFoundException(

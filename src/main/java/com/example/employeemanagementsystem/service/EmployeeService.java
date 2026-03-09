@@ -1,13 +1,16 @@
 package com.example.employeemanagementsystem.service;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
 import com.example.employeemanagementsystem.dto.create.UserCreateDto;
@@ -17,8 +20,10 @@ import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.EmployeeMapper;
 import com.example.employeemanagementsystem.mapper.UserMapper;
 import com.example.employeemanagementsystem.model.Employee;
+import com.example.employeemanagementsystem.model.Role;
 import com.example.employeemanagementsystem.model.User;
 import com.example.employeemanagementsystem.repository.EmployeeRepository;
+import com.example.employeemanagementsystem.repository.RoleRepository;
 import com.example.employeemanagementsystem.repository.UserRepository;
 
 @Service
@@ -27,10 +32,13 @@ public class EmployeeService {
     private static final String EMPLOYEE_NOT_FOUND_MESS = "Employee not found with id ";
     private static final String USER_ALREADY_ASSIGNED_MESSAGE =
             "User is already assigned to another employee. User id ";
+    private boolean failAfterUserSaveDemo = false;
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final RoleService roleService;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -38,11 +46,15 @@ public class EmployeeService {
     public EmployeeService(EmployeeRepository employeeRepository,
             EmployeeMapper employeeMapper,
             UserRepository userRepository,
+            RoleRepository roleRepository,
+            RoleService roleService,
             UserMapper userMapper,
             PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
         this.employeeMapper = employeeMapper;
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.roleService = roleService;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
     }
@@ -71,13 +83,34 @@ public class EmployeeService {
         Employee employee = employeeMapper.toEntity(employeeDto);
         User user = userMapper.toEntity(userDto);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setRoles(resolveRoles(userDto));
+
+        user.setEmployee(null);
+        userRepository.saveAndFlush(user);
+        if (failAfterUserSaveDemo) {
+            boolean txActive = TransactionSynchronizationManager.isActualTransactionActive();
+            throw new IllegalStateException("Demo failure after user save. txActive=" + txActive);
+        }
 
         employee.setUser(user);
         user.setEmployee(employee);
-
         Employee savedEmployee = employeeRepository.save(employee);
-
         return employeeMapper.toDto(savedEmployee);
+    }
+
+    private Set<Role> resolveRoles(UserCreateDto userDto) {
+        Set<Role> roles = new HashSet<>();
+        if (userDto.getRolesId() != null && !userDto.getRolesId().isEmpty()) {
+            for (Long roleId : userDto.getRolesId()) {
+                Role role = roleRepository.findById(roleId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException("Role not found with id " + roleId));
+                roles.add(role);
+            }
+        } else {
+            roles.add(roleService.findRoleByName("USER"));
+        }
+        return roles;
     }
 
     @Transactional
