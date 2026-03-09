@@ -24,9 +24,7 @@ public class EmployeeMapper {
     private final DepartmentRepository departmentRepository;
     private final PositionRepository positionRepository;
     private final UserRepository userRepository;
-    private final DepartmentMapper departmentMapper;
-    private final PositionMapper positionMapper;
-    private final UserMapper userMapper;
+
 
     public Employee toEntity(EmployeeCreateDto dto) {
         if (dto == null) {
