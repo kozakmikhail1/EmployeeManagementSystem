@@ -43,7 +43,7 @@ public class User {
          inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
 
-    @OneToOne(mappedBy = "user", cascade = { CascadeType.MERGE, CascadeType.REFRESH,
+    @OneToOne(mappedBy = "user",fetch = FetchType.LAZY, cascade = { CascadeType.MERGE, CascadeType.REFRESH,
         CascadeType.DETACH})
     private Employee employee;
 }

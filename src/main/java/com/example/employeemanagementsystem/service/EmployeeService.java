@@ -32,7 +32,7 @@ public class EmployeeService {
     private static final String EMPLOYEE_NOT_FOUND_MESS = "Employee not found with id ";
     private static final String USER_ALREADY_ASSIGNED_MESSAGE =
             "User is already assigned to another employee. User id ";
-    private boolean failAfterUserSaveDemo = false;
+    private boolean failAfterUserSaveDemo = true;
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
