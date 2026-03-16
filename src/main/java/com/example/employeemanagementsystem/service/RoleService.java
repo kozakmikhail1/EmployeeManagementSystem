@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.dto.create.RoleCreateDto;
 import com.example.employeemanagementsystem.dto.get.RoleDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
@@ -21,11 +22,16 @@ public class RoleService {
 
     private final RoleRepository roleRepository;
     private final RoleMapper roleMapper;
+    private final EmployeeSearchCache employeeSearchCache;
 
     @Autowired
-    public RoleService(RoleRepository roleRepository, RoleMapper roleMapper) {
+    public RoleService(
+            RoleRepository roleRepository,
+            RoleMapper roleMapper,
+            EmployeeSearchCache employeeSearchCache) {
         this.roleRepository = roleRepository;
         this.roleMapper = roleMapper;
+        this.employeeSearchCache = employeeSearchCache;
     }
 
     @Transactional(readOnly = true)
@@ -47,6 +53,7 @@ public class RoleService {
     public RoleDto createRole(RoleCreateDto roleCreateDto) {
         Role role = roleMapper.toEntity(roleCreateDto);
         Role savedRole = roleRepository.save(role);
+        employeeSearchCache.invalidateAll();
         return roleMapper.toDto(savedRole);
     }
 
@@ -57,6 +64,7 @@ public class RoleService {
                 () -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
         roleMapper.updateRoleFromDto(roleCreateDto, role);
         Role updatedRole = roleRepository.save(role);
+        employeeSearchCache.invalidateAll();
         return roleMapper.toDto(updatedRole);
     }
 
@@ -66,6 +74,7 @@ public class RoleService {
             .orElseThrow(
                 () -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
         roleRepository.deleteById(id);
+        employeeSearchCache.invalidateAll();
     }
 
     @Transactional(readOnly = true)

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.dto.create.PositionCreateDto;
 import com.example.employeemanagementsystem.dto.get.PositionDto;
 import com.example.employeemanagementsystem.exception.ResourceConflictException;
@@ -25,15 +26,18 @@ public class PositionService {
     private final PositionRepository positionRepository;
     private final EmployeeRepository employeeRepository;
     private final PositionMapper positionMapper;
+    private final EmployeeSearchCache employeeSearchCache;
 
     @Autowired
     public PositionService(
             PositionRepository positionRepository,
             EmployeeRepository employeeRepository,
-            PositionMapper positionMapper) {
+            PositionMapper positionMapper,
+            EmployeeSearchCache employeeSearchCache) {
         this.positionRepository = positionRepository;
         this.employeeRepository = employeeRepository;
         this.positionMapper = positionMapper;
+        this.employeeSearchCache = employeeSearchCache;
     }
 
     @Transactional(readOnly = true)
@@ -54,6 +58,7 @@ public class PositionService {
     public PositionDto createPosition(PositionCreateDto positionCreateDto) {
         Position position = positionMapper.toEntity(positionCreateDto);
         Position savedPosition = positionRepository.save(position);
+        employeeSearchCache.invalidateAll();
         return positionMapper.toDto(savedPosition);
     }
 
@@ -63,6 +68,7 @@ public class PositionService {
             .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id));
         positionMapper.updatePositionFromDto(positionCreateDto, position);
         Position updatedPosition = positionRepository.save(position);
+        employeeSearchCache.invalidateAll();
         return positionMapper.toDto(updatedPosition);
     }
 
@@ -75,5 +81,6 @@ public class PositionService {
             throw new ResourceConflictException(POSITION_HAS_EMPLOYEES_MESSAGE + id);
         }
         positionRepository.deleteById(id);
+        employeeSearchCache.invalidateAll();
     }
 }

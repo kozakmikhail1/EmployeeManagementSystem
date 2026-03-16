@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.dto.create.UserCreateDto;
 import com.example.employeemanagementsystem.dto.get.UserDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
@@ -29,6 +30,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
     private final EmployeeService employeeService;
+    private final EmployeeSearchCache employeeSearchCache;
 
     @Autowired
     public UserService(
@@ -37,13 +39,15 @@ public class UserService {
         RoleRepository roleRepository,
         PasswordEncoder passwordEncoder,
         RoleService roleService,
-        EmployeeService employeeService) {
+        EmployeeService employeeService,
+        EmployeeSearchCache employeeSearchCache) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleService = roleService;
         this.employeeService = employeeService;
+        this.employeeSearchCache = employeeSearchCache;
     }
 
     @Transactional(readOnly = true)
@@ -90,6 +94,7 @@ public class UserService {
         user.setRoles(roles);
 
         User savedUser = userRepository.save(user);
+        employeeSearchCache.invalidateAll();
         return userMapper.toDto(savedUser);
     }
 
@@ -119,6 +124,7 @@ public class UserService {
         }
 
         User updatedUser = userRepository.save(user);
+        employeeSearchCache.invalidateAll();
         return userMapper.toDto(updatedUser);
     }
 
@@ -132,5 +138,6 @@ public class UserService {
             employee.setUser(null);
         }
         userRepository.deleteById(id);
+        employeeSearchCache.invalidateAll();
     }
 }

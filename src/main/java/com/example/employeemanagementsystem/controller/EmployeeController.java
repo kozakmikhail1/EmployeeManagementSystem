@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -64,6 +66,32 @@ public class EmployeeController {
             @Positive @RequestParam(value = "positionId") Long positionId) {
         List<EmployeeDto> employees = employeeService.getEmployeesByPositionId(positionId);
         return ResponseEntity.ok(employees);
+    }
+
+    @GetMapping("/search/jpql")
+    public ResponseEntity<Page<EmployeeDto>> searchEmployeesWithNestedFilterJpql(
+            @RequestParam(value = "departmentName", required = false) String departmentName,
+            @RequestParam(value = "roleName", required = false) String roleName,
+            @RequestParam(value = "min_salary", required = false) BigDecimal minSalary,
+            @RequestParam(value = "max_salary", required = false) BigDecimal maxSalary,
+            @RequestParam(value = "active", required = false) Boolean active,
+            Pageable pageable) {
+        Page<EmployeeDto> employeePage = employeeService.searchEmployeesWithNestedFilterJpql(
+                departmentName, roleName, minSalary, maxSalary, active, pageable);
+        return ResponseEntity.ok(employeePage);
+    }
+
+    @GetMapping("/search/native")
+    public ResponseEntity<Page<EmployeeDto>> searchEmployeesWithNestedFilterNative(
+            @RequestParam(value = "departmentName", required = false) String departmentName,
+            @RequestParam(value = "roleName", required = false) String roleName,
+            @RequestParam(value = "min_salary", required = false) BigDecimal minSalary,
+            @RequestParam(value = "max_salary", required = false) BigDecimal maxSalary,
+            @RequestParam(value = "active", required = false) Boolean active,
+            Pageable pageable) {
+        Page<EmployeeDto> employeePage = employeeService.searchEmployeesWithNestedFilterNative(
+                departmentName, roleName, minSalary, maxSalary, active, pageable);
+        return ResponseEntity.ok(employeePage);
     }
 
     @PostMapping

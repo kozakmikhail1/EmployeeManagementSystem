@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.dto.create.DepartmentCreateDto;
 import com.example.employeemanagementsystem.dto.get.DepartmentDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
@@ -22,14 +23,16 @@ public class DepartmentService {
     private final DepartmentRepository departmentRepository;
     private final DepartmentMapper departmentMapper;
     private final UserService userService;
+    private final EmployeeSearchCache employeeSearchCache;
 
     @Autowired
     public DepartmentService(
             DepartmentRepository departmentRepository, DepartmentMapper departmentMapper,
-            UserService userService) {
+            UserService userService, EmployeeSearchCache employeeSearchCache) {
         this.departmentRepository = departmentRepository;
         this.departmentMapper = departmentMapper;
         this.userService = userService;
+        this.employeeSearchCache = employeeSearchCache;
     }
 
     @Transactional(readOnly = true)
@@ -52,6 +55,7 @@ public class DepartmentService {
     public DepartmentDto createDepartment(DepartmentCreateDto departmentDto) {
         Department department = departmentMapper.toEntity(departmentDto);
         Department savedDepartment = departmentRepository.save(department);
+        employeeSearchCache.invalidateAll();
         return departmentMapper.toDto(savedDepartment);
     }
 
@@ -63,6 +67,7 @@ public class DepartmentService {
                         () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
         departmentMapper.updateDepartmentFromDto(departmentDto, department);
         Department updatedDepartment = departmentRepository.save(department);
+        employeeSearchCache.invalidateAll();
         return departmentMapper.toDto(updatedDepartment);
     }
 
@@ -79,5 +84,6 @@ public class DepartmentService {
         }
 
         departmentRepository.delete(department);
+        employeeSearchCache.invalidateAll();
     }
 }

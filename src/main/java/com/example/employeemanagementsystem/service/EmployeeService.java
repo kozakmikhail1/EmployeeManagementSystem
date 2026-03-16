@@ -7,11 +7,14 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
+import com.example.employeemanagementsystem.cache.EmployeeSearchCacheKey;
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
 import com.example.employeemanagementsystem.dto.create.UserCreateDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
@@ -32,7 +35,6 @@ public class EmployeeService {
     private static final String EMPLOYEE_NOT_FOUND_MESS = "Employee not found with id ";
     private static final String USER_ALREADY_ASSIGNED_MESSAGE =
             "User is already assigned to another employee. User id ";
-    private boolean failAfterUserSaveDemo = true;
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
@@ -41,6 +43,7 @@ public class EmployeeService {
     private final RoleService roleService;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EmployeeSearchCache employeeSearchCache;
 
     @Autowired
     public EmployeeService(EmployeeRepository employeeRepository,
@@ -49,7 +52,8 @@ public class EmployeeService {
             RoleRepository roleRepository,
             RoleService roleService,
             UserMapper userMapper,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            EmployeeSearchCache employeeSearchCache) {
         this.employeeRepository = employeeRepository;
         this.employeeMapper = employeeMapper;
         this.userRepository = userRepository;
@@ -57,6 +61,7 @@ public class EmployeeService {
         this.roleService = roleService;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+        this.employeeSearchCache = employeeSearchCache;
     }
 
     @Transactional
@@ -74,7 +79,7 @@ public class EmployeeService {
             employee.setUser(user);
         }
         Employee savedEmployee = employeeRepository.save(employee);
-
+        invalidateEmployeeSearchCache();
         return employeeMapper.toDto(savedEmployee);
     }
 
@@ -86,15 +91,12 @@ public class EmployeeService {
         user.setRoles(resolveRoles(userDto));
 
         user.setEmployee(null);
-        userRepository.saveAndFlush(user);
-        if (failAfterUserSaveDemo) {
-            boolean txActive = TransactionSynchronizationManager.isActualTransactionActive();
-            throw new IllegalStateException("Demo failure after user save. txActive=" + txActive);
-        }
+        userRepository.save(user);
 
         employee.setUser(user);
         user.setEmployee(employee);
         Employee savedEmployee = employeeRepository.save(employee);
+        invalidateEmployeeSearchCache();
         return employeeMapper.toDto(savedEmployee);
     }
 
@@ -135,7 +137,9 @@ public class EmployeeService {
         }
 
         employeeMapper.updateEmployeeFromDto(employeeDto, employee);
-        return employeeMapper.toDto(employeeRepository.save(employee));
+        Employee updatedEmployee = employeeRepository.save(employee);
+        invalidateEmployeeSearchCache();
+        return employeeMapper.toDto(updatedEmployee);
     }
 
     @Transactional(readOnly = true)
@@ -180,12 +184,69 @@ public class EmployeeService {
         return employees.stream().map(employeeMapper::toDto).toList();
     }
 
+    @Transactional(readOnly = true)
+    public Page<EmployeeDto> searchEmployeesWithNestedFilterJpql(
+            String departmentName,
+            String roleName,
+            BigDecimal minSalary,
+            BigDecimal maxSalary,
+            Boolean active,
+            Pageable pageable) {
+        EmployeeSearchCacheKey cacheKey = EmployeeSearchCacheKey.from(
+                EmployeeSearchCacheKey.QueryType.JPQL,
+                departmentName,
+                roleName,
+                minSalary,
+                maxSalary,
+                active,
+                pageable);
+        Page<EmployeeDto> cachedPage = employeeSearchCache.get(cacheKey);
+        if (cachedPage != null) {
+            return cachedPage;
+        }
+
+        Page<EmployeeDto> page = employeeRepository.searchWithNestedFiltersJpql(
+                departmentName, roleName, minSalary, maxSalary, active, pageable)
+            .map(employeeMapper::toDto);
+        employeeSearchCache.put(cacheKey, page);
+        return page;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<EmployeeDto> searchEmployeesWithNestedFilterNative(
+            String departmentName,
+            String roleName,
+            BigDecimal minSalary,
+            BigDecimal maxSalary,
+            Boolean active,
+            Pageable pageable) {
+        EmployeeSearchCacheKey cacheKey = EmployeeSearchCacheKey.from(
+                EmployeeSearchCacheKey.QueryType.NATIVE,
+                departmentName,
+                roleName,
+                minSalary,
+                maxSalary,
+                active,
+                pageable);
+        Page<EmployeeDto> cachedPage = employeeSearchCache.get(cacheKey);
+        if (cachedPage != null) {
+            return cachedPage;
+        }
+
+        Page<EmployeeDto> page = employeeRepository.searchWithNestedFiltersNative(
+                departmentName, roleName, minSalary, maxSalary, active, pageable)
+            .map(employeeMapper::toDto);
+        employeeSearchCache.put(cacheKey, page);
+        return page;
+    }
+
     @Transactional
     public void deleteEmployee(Long id) {
         if (!employeeRepository.existsById(id)) {
             throw new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESS + id);
         }
         employeeRepository.deleteById(id);
+        invalidateEmployeeSearchCache();
     }
 
     public Employee getEmployeeByUserId(Long id) {
@@ -194,6 +255,12 @@ public class EmployeeService {
 
     @Transactional
     public Employee updateEmployeeWithoutDto(Employee employee) {
-        return employeeRepository.save(employee);
+        Employee savedEmployee = employeeRepository.save(employee);
+        invalidateEmployeeSearchCache();
+        return savedEmployee;
+    }
+
+    private void invalidateEmployeeSearchCache() {
+        employeeSearchCache.invalidateAll();
     }
 }
