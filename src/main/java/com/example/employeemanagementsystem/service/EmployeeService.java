@@ -188,16 +188,12 @@ public class EmployeeService {
     public Page<EmployeeDto> searchEmployeesWithNestedFilterJpql(
             String departmentName,
             String roleName,
-            BigDecimal minSalary,
-            BigDecimal maxSalary,
             Boolean active,
             Pageable pageable) {
         EmployeeSearchCacheKey cacheKey = EmployeeSearchCacheKey.from(
                 EmployeeSearchCacheKey.QueryType.JPQL,
                 departmentName,
                 roleName,
-                minSalary,
-                maxSalary,
                 active,
                 pageable);
         Page<EmployeeDto> cachedPage = employeeSearchCache.get(cacheKey);
@@ -206,7 +202,7 @@ public class EmployeeService {
         }
 
         Page<EmployeeDto> page = employeeRepository.searchWithNestedFiltersJpql(
-                departmentName, roleName, minSalary, maxSalary, active, pageable)
+                departmentName, roleName, active, pageable)
             .map(employeeMapper::toDto);
         employeeSearchCache.put(cacheKey, page);
         return page;
@@ -216,16 +212,12 @@ public class EmployeeService {
     public Page<EmployeeDto> searchEmployeesWithNestedFilterNative(
             String departmentName,
             String roleName,
-            BigDecimal minSalary,
-            BigDecimal maxSalary,
             Boolean active,
             Pageable pageable) {
         EmployeeSearchCacheKey cacheKey = EmployeeSearchCacheKey.from(
                 EmployeeSearchCacheKey.QueryType.NATIVE,
                 departmentName,
                 roleName,
-                minSalary,
-                maxSalary,
                 active,
                 pageable);
         Page<EmployeeDto> cachedPage = employeeSearchCache.get(cacheKey);
@@ -234,7 +226,7 @@ public class EmployeeService {
         }
 
         Page<EmployeeDto> page = employeeRepository.searchWithNestedFiltersNative(
-                departmentName, roleName, minSalary, maxSalary, active, pageable)
+                departmentName, roleName, active, pageable)
             .map(employeeMapper::toDto);
         employeeSearchCache.put(cacheKey, page);
         return page;

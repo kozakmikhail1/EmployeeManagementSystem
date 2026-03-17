@@ -1,6 +1,5 @@
 package com.example.employeemanagementsystem.cache;
 
-import java.math.BigDecimal;
 import java.util.Objects;
 
 import org.springframework.data.domain.Pageable;
@@ -15,8 +14,6 @@ public final class EmployeeSearchCacheKey {
     private final QueryType queryType;
     private final String departmentName;
     private final String roleName;
-    private final BigDecimal minSalary;
-    private final BigDecimal maxSalary;
     private final Boolean active;
     private final int pageNumber;
     private final int pageSize;
@@ -26,8 +23,6 @@ public final class EmployeeSearchCacheKey {
             QueryType queryType,
             String departmentName,
             String roleName,
-            BigDecimal minSalary,
-            BigDecimal maxSalary,
             Boolean active,
             int pageNumber,
             int pageSize,
@@ -35,8 +30,6 @@ public final class EmployeeSearchCacheKey {
         this.queryType = queryType;
         this.departmentName = normalize(departmentName);
         this.roleName = normalize(roleName);
-        this.minSalary = minSalary;
-        this.maxSalary = maxSalary;
         this.active = active;
         this.pageNumber = pageNumber;
         this.pageSize = pageSize;
@@ -47,16 +40,12 @@ public final class EmployeeSearchCacheKey {
             QueryType queryType,
             String departmentName,
             String roleName,
-            BigDecimal minSalary,
-            BigDecimal maxSalary,
             Boolean active,
             Pageable pageable) {
         return new EmployeeSearchCacheKey(
                 queryType,
                 departmentName,
                 roleName,
-                minSalary,
-                maxSalary,
                 active,
                 pageable.getPageNumber(),
                 pageable.getPageSize(),
@@ -87,8 +76,6 @@ public final class EmployeeSearchCacheKey {
                 && queryType == that.queryType
                 && Objects.equals(departmentName, that.departmentName)
                 && Objects.equals(roleName, that.roleName)
-                && Objects.equals(minSalary, that.minSalary)
-                && Objects.equals(maxSalary, that.maxSalary)
                 && Objects.equals(active, that.active)
                 && Objects.equals(sort, that.sort);
     }
@@ -99,8 +86,6 @@ public final class EmployeeSearchCacheKey {
                 queryType,
                 departmentName,
                 roleName,
-                minSalary,
-                maxSalary,
                 active,
                 pageNumber,
                 pageSize,

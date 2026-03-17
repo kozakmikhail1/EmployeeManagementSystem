@@ -72,12 +72,10 @@ public class EmployeeController {
     public ResponseEntity<Page<EmployeeDto>> searchEmployeesWithNestedFilterJpql(
             @RequestParam(value = "departmentName", required = false) String departmentName,
             @RequestParam(value = "roleName", required = false) String roleName,
-            @RequestParam(value = "min_salary", required = false) BigDecimal minSalary,
-            @RequestParam(value = "max_salary", required = false) BigDecimal maxSalary,
             @RequestParam(value = "active", required = false) Boolean active,
             Pageable pageable) {
         Page<EmployeeDto> employeePage = employeeService.searchEmployeesWithNestedFilterJpql(
-                departmentName, roleName, minSalary, maxSalary, active, pageable);
+                departmentName, roleName, active, pageable);
         return ResponseEntity.ok(employeePage);
     }
 
@@ -85,12 +83,10 @@ public class EmployeeController {
     public ResponseEntity<Page<EmployeeDto>> searchEmployeesWithNestedFilterNative(
             @RequestParam(value = "departmentName", required = false) String departmentName,
             @RequestParam(value = "roleName", required = false) String roleName,
-            @RequestParam(value = "min_salary", required = false) BigDecimal minSalary,
-            @RequestParam(value = "max_salary", required = false) BigDecimal maxSalary,
             @RequestParam(value = "active", required = false) Boolean active,
             Pageable pageable) {
         Page<EmployeeDto> employeePage = employeeService.searchEmployeesWithNestedFilterNative(
-                departmentName, roleName, minSalary, maxSalary, active, pageable);
+                departmentName, roleName, active, pageable);
         return ResponseEntity.ok(employeePage);
     }
 

@@ -42,8 +42,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                             + "WHERE (:departmentName IS NULL "
                             + "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) "
                             + "AND (:roleName IS NULL OR LOWER(r.name) = LOWER(:roleName)) "
-                            + "AND (:minSalary IS NULL OR e.salary >= :minSalary) "
-                            + "AND (:maxSalary IS NULL OR e.salary <= :maxSalary) "
                             + "AND (:active IS NULL OR e.isActive = :active)",
             countQuery =
                     "SELECT COUNT(DISTINCT e.id) FROM Employee e "
@@ -53,14 +51,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                             + "WHERE (:departmentName IS NULL "
                             + "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) "
                             + "AND (:roleName IS NULL OR LOWER(r.name) = LOWER(:roleName)) "
-                            + "AND (:minSalary IS NULL OR e.salary >= :minSalary) "
-                            + "AND (:maxSalary IS NULL OR e.salary <= :maxSalary) "
                             + "AND (:active IS NULL OR e.isActive = :active)")
     Page<Employee> searchWithNestedFiltersJpql(
             @Param("departmentName") String departmentName,
             @Param("roleName") String roleName,
-            @Param("minSalary") BigDecimal minSalary,
-            @Param("maxSalary") BigDecimal maxSalary,
             @Param("active") Boolean active,
             Pageable pageable);
 
@@ -74,8 +68,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                             + "WHERE (:departmentName IS NULL "
                             + "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) "
                             + "AND (:roleName IS NULL OR LOWER(r.name) = LOWER(:roleName)) "
-                            + "AND (:minSalary IS NULL OR e.salary >= :minSalary) "
-                            + "AND (:maxSalary IS NULL OR e.salary <= :maxSalary) "
                             + "AND (:active IS NULL OR e.is_active = :active)",
             countQuery =
                     "SELECT COUNT(DISTINCT e.id) FROM employees e "
@@ -86,15 +78,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                             + "WHERE (:departmentName IS NULL "
                             + "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) "
                             + "AND (:roleName IS NULL OR LOWER(r.name) = LOWER(:roleName)) "
-                            + "AND (:minSalary IS NULL OR e.salary >= :minSalary) "
-                            + "AND (:maxSalary IS NULL OR e.salary <= :maxSalary) "
                             + "AND (:active IS NULL OR e.is_active = :active)",
             nativeQuery = true)
     Page<Employee> searchWithNestedFiltersNative(
             @Param("departmentName") String departmentName,
             @Param("roleName") String roleName,
-            @Param("minSalary") BigDecimal minSalary,
-            @Param("maxSalary") BigDecimal maxSalary,
             @Param("active") Boolean active,
             Pageable pageable);
 }
