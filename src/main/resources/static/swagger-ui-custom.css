@@ -1,0 +1,75 @@
+:root {
+  --ems-bg: #f7f5f0;
+  --ems-panel: #ffffff;
+  --ems-accent: #1f4e79;
+  --ems-accent-2: #e76f51;
+  --ems-text: #1f2937;
+  --ems-muted: #6b7280;
+}
+
+body {
+  background: var(--ems-bg);
+}
+
+.swagger-ui {
+  color: var(--ems-text);
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+.swagger-ui .topbar {
+  background-color: var(--ems-accent);
+  border-bottom: 3px solid var(--ems-accent-2);
+}
+
+.swagger-ui .topbar a span {
+  color: #fff;
+}
+
+.swagger-ui .info .title {
+  color: var(--ems-accent);
+}
+
+.swagger-ui .scheme-container {
+  background: var(--ems-panel);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+}
+
+.swagger-ui .opblock {
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.swagger-ui .opblock-summary {
+  border-radius: 10px;
+}
+
+.swagger-ui .opblock.opblock-get .opblock-summary-method {
+  background: #2a9d8f;
+}
+
+.swagger-ui .opblock.opblock-post .opblock-summary-method {
+  background: #457b9d;
+}
+
+.swagger-ui .opblock.opblock-put .opblock-summary-method {
+  background: #f4a261;
+}
+
+.swagger-ui .opblock.opblock-delete .opblock-summary-method {
+  background: #e63946;
+}
+
+.swagger-ui .btn.execute {
+  background: var(--ems-accent);
+  border-color: var(--ems-accent);
+}
+
+.swagger-ui .btn.execute:hover {
+  background: #163a5a;
+  border-color: #163a5a;
+}
+
+.swagger-ui .parameters-col_description {
+  color: var(--ems-muted);
+}
