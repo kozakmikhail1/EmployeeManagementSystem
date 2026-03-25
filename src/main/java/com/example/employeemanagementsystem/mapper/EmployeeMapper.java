@@ -22,6 +22,10 @@ import lombok.RequiredArgsConstructor;
 @NonNullApi
 public class EmployeeMapper {
 
+    private static final String DEPARTMENT_NOT_FOUND_MESSAGE = "Department not found";
+    private static final String POSITION_NOT_FOUND_MESSAGE = "Position not found";
+    private static final String USER_NOT_FOUND_MESSAGE = "User not found";
+
     private final DepartmentRepository departmentRepository;
     private final PositionRepository positionRepository;
     private final UserRepository userRepository;
@@ -42,17 +46,17 @@ public class EmployeeMapper {
 
         if (dto.getDepartmentId() != null) {
             employee.setDepartment(departmentRepository.findById(dto.getDepartmentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
+                    .orElseThrow(() -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE)));
         }
 
         if (dto.getPositionId() != null) {
             employee.setPosition(positionRepository.findById(dto.getPositionId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
+                    .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE)));
         }
 
         if (dto.getUserId() != null) {
             employee.setUser(userRepository.findById(dto.getUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+                    .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_MESSAGE)));
         }
 
         return employee;
@@ -118,39 +122,15 @@ public class EmployeeMapper {
             return;
         }
 
-        if (dto.getFirstName() != null) {
-            entity.setFirstName(dto.getFirstName());
-        }
-        if (dto.getLastName() != null) {
-            entity.setLastName(dto.getLastName());
-        }
-        if (dto.getEmail() != null) {
-            entity.setEmail(dto.getEmail());
-        }
-        if (dto.getHireDate() != null) {
-            entity.setHireDate(dto.getHireDate());
-        }
-        if (dto.getSalary() != null) {
-            entity.setSalary(dto.getSalary());
-        }
-        if (dto.getIsActive() != null) {
-            entity.setIsActive(dto.getIsActive());
-        }
-
-        if (dto.getDepartmentId() != null) {
-            entity.setDepartment(departmentRepository.findById(dto.getDepartmentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
-        }
-
-        if (dto.getPositionId() != null) {
-            entity.setPosition(positionRepository.findById(dto.getPositionId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
-        }
-
-        if (dto.getUserId() != null) {
-            entity.setUser(userRepository.findById(dto.getUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found")));
-        }
+        applyEmployeeFields(
+                dto.getFirstName(),
+                dto.getLastName(),
+                dto.getEmail(),
+                dto.getHireDate(),
+                dto.getSalary(),
+                dto.getIsActive(),
+                entity);
+        applyEmployeeRelations(dto.getDepartmentId(), dto.getPositionId(), dto.getUserId(), entity);
     }
 
     public void updateEmployeeFromPatchDto(EmployeePatchDto dto, Employee entity) {
@@ -158,38 +138,63 @@ public class EmployeeMapper {
             return;
         }
 
-        if (dto.getFirstName() != null) {
-            entity.setFirstName(dto.getFirstName());
+        applyEmployeeFields(
+                dto.getFirstName(),
+                dto.getLastName(),
+                dto.getEmail(),
+                dto.getHireDate(),
+                dto.getSalary(),
+                dto.getIsActive(),
+                entity);
+        applyEmployeeRelations(dto.getDepartmentId(), dto.getPositionId(), dto.getUserId(), entity);
+    }
+
+    private void applyEmployeeFields(
+            String firstName,
+            String lastName,
+            String email,
+            java.time.LocalDate hireDate,
+            java.math.BigDecimal salary,
+            Boolean isActive,
+            Employee entity) {
+        if (firstName != null) {
+            entity.setFirstName(firstName);
         }
-        if (dto.getLastName() != null) {
-            entity.setLastName(dto.getLastName());
+        if (lastName != null) {
+            entity.setLastName(lastName);
         }
-        if (dto.getEmail() != null) {
-            entity.setEmail(dto.getEmail());
+        if (email != null) {
+            entity.setEmail(email);
         }
-        if (dto.getHireDate() != null) {
-            entity.setHireDate(dto.getHireDate());
+        if (hireDate != null) {
+            entity.setHireDate(hireDate);
         }
-        if (dto.getSalary() != null) {
-            entity.setSalary(dto.getSalary());
+        if (salary != null) {
+            entity.setSalary(salary);
         }
-        if (dto.getIsActive() != null) {
-            entity.setIsActive(dto.getIsActive());
+        if (isActive != null) {
+            entity.setIsActive(isActive);
+        }
+    }
+
+    private void applyEmployeeRelations(
+            Long departmentId,
+            Long positionId,
+            Long userId,
+            Employee entity) {
+        if (departmentId != null) {
+            entity.setDepartment(departmentRepository.findById(departmentId)
+                    .orElseThrow(() -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE)));
         }
 
-        if (dto.getDepartmentId() != null) {
-            entity.setDepartment(departmentRepository.findById(dto.getDepartmentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
+        if (positionId != null) {
+            entity.setPosition(positionRepository.findById(positionId)
+                    .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE)));
         }
 
-        if (dto.getPositionId() != null) {
-            entity.setPosition(positionRepository.findById(dto.getPositionId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
-        }
-
-        if (dto.getUserId() != null) {
-            entity.setUser(userRepository.findById(dto.getUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+        if (userId != null) {
+            entity.setUser(userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_MESSAGE)));
         }
     }
     

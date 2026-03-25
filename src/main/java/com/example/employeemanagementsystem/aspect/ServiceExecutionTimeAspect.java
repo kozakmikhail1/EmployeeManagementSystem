@@ -21,10 +21,12 @@ public class ServiceExecutionTimeAspect {
         try {
             return joinPoint.proceed();
         } finally {
-            long elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
-            LOGGER.info("Service method {} executed in {} ms",
-                    joinPoint.getSignature().toShortString(),
-                    elapsedMs);
+            if (LOGGER.isInfoEnabled()) {
+                long elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+                LOGGER.info("Service method {} executed in {} ms",
+                        joinPoint.getSignature().toShortString(),
+                        elapsedMs);
+            }
         }
     }
 }

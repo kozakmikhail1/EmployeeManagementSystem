@@ -150,11 +150,10 @@ public class EmployeeService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         EMPLOYEE_NOT_FOUND_MESS + id));
 
-        if (employeeDto.getUserId() != null) {
-            if (employeeRepository.existsByUserIdAndIdNot(employeeDto.getUserId(), id)) {
-                throw new ResourceConflictException(
-                        USER_ALREADY_ASSIGNED_MESSAGE + employeeDto.getUserId());
-            }
+        if (employeeDto.getUserId() != null
+                && employeeRepository.existsByUserIdAndIdNot(employeeDto.getUserId(), id)) {
+            throw new ResourceConflictException(
+                    USER_ALREADY_ASSIGNED_MESSAGE + employeeDto.getUserId());
         }
 
         employeeMapper.updateEmployeeFromPatchDto(employeeDto, employee);

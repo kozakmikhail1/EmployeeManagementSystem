@@ -25,6 +25,7 @@ import com.example.employeemanagementsystem.repository.UserRepository;
 public class UserService {
 
     private static final String USER_NOT_FOUND_WITH_ID_MESSAGE = "User not found with id ";
+    private static final String ROLE_NOT_FOUND_WITH_ID_MESSAGE = "Role not found with id ";
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
@@ -86,7 +87,7 @@ public class UserService {
                     Role role =
                         roleRepository.findById(roleId)
                             .orElseThrow(() -> new ResourceNotFoundException(
-                                "Role not found with id " + roleId));
+                                ROLE_NOT_FOUND_WITH_ID_MESSAGE + roleId));
                     roles.add(role);
                 });
         } else {
@@ -106,23 +107,8 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                     USER_NOT_FOUND_WITH_ID_MESSAGE + id));
 
-        userMapper.updateUserFromDto(userCreateDto, user);
-
-        if (userCreateDto.getPassword() != null && !userCreateDto.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(userCreateDto.getPassword()));
-        }
-
-        if (userCreateDto.getRolesId() != null) {
-            Set<Role> newRoles = new HashSet<>();
-            for (Long roleId : userCreateDto.getRolesId()) {
-                Role role =
-                    roleRepository.findById(roleId)
-                        .orElseThrow(() -> new ResourceNotFoundException(
-                            "Role not found with id " + roleId));
-                newRoles.add(role);
-            }
-            user.setRoles(newRoles);
-        }
+        applyUserUpdates(user, userCreateDto.getUsername(),
+                userCreateDto.getPassword(), userCreateDto.getRolesId());
 
         User updatedUser = userRepository.save(user);
         employeeSearchCache.invalidateAll();
@@ -136,29 +122,38 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                     USER_NOT_FOUND_WITH_ID_MESSAGE + id));
 
-        if (userCreateDto.getUsername() != null) {
-            user.setUsername(userCreateDto.getUsername());
-        }
-
-        if (userCreateDto.getPassword() != null && !userCreateDto.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(userCreateDto.getPassword()));
-        }
-
-        if (userCreateDto.getRolesId() != null) {
-            Set<Role> newRoles = new HashSet<>();
-            for (Long roleId : userCreateDto.getRolesId()) {
-                Role role =
-                    roleRepository.findById(roleId)
-                        .orElseThrow(() -> new ResourceNotFoundException(
-                            "Role not found with id " + roleId));
-                newRoles.add(role);
-            }
-            user.setRoles(newRoles);
-        }
+        applyUserUpdates(user, userCreateDto.getUsername(),
+                userCreateDto.getPassword(), userCreateDto.getRolesId());
 
         User updatedUser = userRepository.save(user);
         employeeSearchCache.invalidateAll();
         return userMapper.toDto(updatedUser);
+    }
+
+    private void applyUserUpdates(
+            User user,
+            String username,
+            String password,
+            Set<Long> rolesId) {
+        if (username != null) {
+            user.setUsername(username);
+        }
+
+        if (password != null && !password.isEmpty()) {
+            user.setPassword(passwordEncoder.encode(password));
+        }
+
+        if (rolesId != null) {
+            Set<Role> newRoles = new HashSet<>();
+            for (Long roleId : rolesId) {
+                Role role =
+                    roleRepository.findById(roleId)
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                            ROLE_NOT_FOUND_WITH_ID_MESSAGE + roleId));
+                newRoles.add(role);
+            }
+            user.setRoles(newRoles);
+        }
     }
 
     @Transactional
