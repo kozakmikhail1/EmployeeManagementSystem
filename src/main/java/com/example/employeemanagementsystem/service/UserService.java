@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.dto.create.UserCreateDto;
 import com.example.employeemanagementsystem.dto.get.UserDto;
+import com.example.employeemanagementsystem.dto.patch.UserPatchDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.UserMapper;
 import com.example.employeemanagementsystem.model.Employee;
@@ -106,6 +107,38 @@ public class UserService {
                     USER_NOT_FOUND_WITH_ID_MESSAGE + id));
 
         userMapper.updateUserFromDto(userCreateDto, user);
+
+        if (userCreateDto.getPassword() != null && !userCreateDto.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(userCreateDto.getPassword()));
+        }
+
+        if (userCreateDto.getRolesId() != null) {
+            Set<Role> newRoles = new HashSet<>();
+            for (Long roleId : userCreateDto.getRolesId()) {
+                Role role =
+                    roleRepository.findById(roleId)
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                            "Role not found with id " + roleId));
+                newRoles.add(role);
+            }
+            user.setRoles(newRoles);
+        }
+
+        User updatedUser = userRepository.save(user);
+        employeeSearchCache.invalidateAll();
+        return userMapper.toDto(updatedUser);
+    }
+
+    @Transactional
+    public UserDto patchUser(Long id, UserPatchDto userCreateDto) {
+        User user =
+            userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    USER_NOT_FOUND_WITH_ID_MESSAGE + id));
+
+        if (userCreateDto.getUsername() != null) {
+            user.setUsername(userCreateDto.getUsername());
+        }
 
         if (userCreateDto.getPassword() != null && !userCreateDto.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(userCreateDto.getPassword()));

@@ -18,6 +18,7 @@ import com.example.employeemanagementsystem.cache.EmployeeSearchCacheKey;
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
 import com.example.employeemanagementsystem.dto.create.UserCreateDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
+import com.example.employeemanagementsystem.dto.patch.EmployeePatchDto;
 import com.example.employeemanagementsystem.exception.ResourceConflictException;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.EmployeeMapper;
@@ -137,6 +138,26 @@ public class EmployeeService {
         }
 
         employeeMapper.updateEmployeeFromDto(employeeDto, employee);
+        Employee updatedEmployee = employeeRepository.save(employee);
+        invalidateEmployeeSearchCache();
+        return employeeMapper.toDto(updatedEmployee);
+    }
+
+    @Transactional
+    public EmployeeDto patchEmployee(Long id, EmployeePatchDto employeeDto) {
+        Employee employee = employeeRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        EMPLOYEE_NOT_FOUND_MESS + id));
+
+        if (employeeDto.getUserId() != null) {
+            if (employeeRepository.existsByUserIdAndIdNot(employeeDto.getUserId(), id)) {
+                throw new ResourceConflictException(
+                        USER_ALREADY_ASSIGNED_MESSAGE + employeeDto.getUserId());
+            }
+        }
+
+        employeeMapper.updateEmployeeFromPatchDto(employeeDto, employee);
         Employee updatedEmployee = employeeRepository.save(employee);
         invalidateEmployeeSearchCache();
         return employeeMapper.toDto(updatedEmployee);

@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
+import com.example.employeemanagementsystem.dto.patch.EmployeePatchDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.model.Employee;
@@ -152,5 +153,44 @@ public class EmployeeMapper {
         }
     }
 
+    public void updateEmployeeFromPatchDto(EmployeePatchDto dto, Employee entity) {
+        if (dto == null || entity == null) {
+            return;
+        }
+
+        if (dto.getFirstName() != null) {
+            entity.setFirstName(dto.getFirstName());
+        }
+        if (dto.getLastName() != null) {
+            entity.setLastName(dto.getLastName());
+        }
+        if (dto.getEmail() != null) {
+            entity.setEmail(dto.getEmail());
+        }
+        if (dto.getHireDate() != null) {
+            entity.setHireDate(dto.getHireDate());
+        }
+        if (dto.getSalary() != null) {
+            entity.setSalary(dto.getSalary());
+        }
+        if (dto.getIsActive() != null) {
+            entity.setIsActive(dto.getIsActive());
+        }
+
+        if (dto.getDepartmentId() != null) {
+            entity.setDepartment(departmentRepository.findById(dto.getDepartmentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found")));
+        }
+
+        if (dto.getPositionId() != null) {
+            entity.setPosition(positionRepository.findById(dto.getPositionId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Position not found")));
+        }
+
+        if (dto.getUserId() != null) {
+            entity.setUser(userRepository.findById(dto.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+        }
+    }
     
 }

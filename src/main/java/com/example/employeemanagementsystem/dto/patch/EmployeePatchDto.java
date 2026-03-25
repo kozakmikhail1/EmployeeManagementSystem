@@ -1,45 +1,42 @@
-package com.example.employeemanagementsystem.dto.create;
+package com.example.employeemanagementsystem.dto.patch;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-@Schema(description = "Employee create/update payload")
+@Schema(description = "Employee patch payload")
 @Getter
 @Setter
-public class EmployeeCreateDto {
+public class EmployeePatchDto {
 
-    @NotBlank(message = "First name cannot be blank")
+    @Size(min = 1, message = "First name cannot be blank")
     private String firstName;
 
-    @NotBlank(message = "Last name cannot be blank")
+    @Size(min = 1, message = "Last name cannot be blank")
     private String lastName;
 
-    @NotBlank(message = "Email cannot be blank")
     @Email(message = "Invalid email format")
     private String email;
 
-    @NotNull(message = "Hire date cannot be null")
     private LocalDate hireDate;
 
-    @NotNull(message = "Salary cannot be null")
     @Positive(message = "Salary must be positive")
     private BigDecimal salary;
 
     private Boolean isActive;
 
-    @NotNull(message = "Department ID cannot be null")
+    @Positive(message = "Department ID must be positive")
     private Long departmentId;
 
-    @NotNull(message = "Position ID cannot be null")
+    @Positive(message = "Position ID must be positive")
     private Long positionId;
 
+    @Positive(message = "User ID must be positive")
     private Long userId;
 }

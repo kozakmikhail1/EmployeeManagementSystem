@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.dto.create.DepartmentCreateDto;
 import com.example.employeemanagementsystem.dto.get.DepartmentDto;
+import com.example.employeemanagementsystem.dto.patch.DepartmentPatchDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.DepartmentMapper;
 import com.example.employeemanagementsystem.model.Department;
@@ -66,6 +67,18 @@ public class DepartmentService {
                 .orElseThrow(
                         () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
         departmentMapper.updateDepartmentFromDto(departmentDto, department);
+        Department updatedDepartment = departmentRepository.save(department);
+        employeeSearchCache.invalidateAll();
+        return departmentMapper.toDto(updatedDepartment);
+    }
+
+    @Transactional
+    public DepartmentDto patchDepartment(Long id, DepartmentPatchDto departmentDto) {
+        Department department = departmentRepository
+                .findById(id)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MESSAGE + id));
+        departmentMapper.updateDepartmentFromPatchDto(departmentDto, department);
         Department updatedDepartment = departmentRepository.save(department);
         employeeSearchCache.invalidateAll();
         return departmentMapper.toDto(updatedDepartment);

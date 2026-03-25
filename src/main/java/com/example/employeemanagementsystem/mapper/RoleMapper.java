@@ -6,6 +6,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.example.employeemanagementsystem.dto.create.RoleCreateDto;
+import com.example.employeemanagementsystem.dto.patch.RolePatchDto;
 import com.example.employeemanagementsystem.dto.get.RoleDto;
 import com.example.employeemanagementsystem.model.Role;
 
@@ -22,4 +23,8 @@ public interface RoleMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "users", ignore = true)
     void updateRoleFromDto(RoleCreateDto dto, @MappingTarget Role entity);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "users", ignore = true)
+    void updateRoleFromPatchDto(RolePatchDto dto, @MappingTarget Role entity);
 }

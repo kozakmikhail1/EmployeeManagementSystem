@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.dto.create.PositionCreateDto;
 import com.example.employeemanagementsystem.dto.get.PositionDto;
+import com.example.employeemanagementsystem.dto.patch.PositionPatchDto;
 import com.example.employeemanagementsystem.exception.ResourceConflictException;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.PositionMapper;
@@ -67,6 +68,16 @@ public class PositionService {
         Position position = positionRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id));
         positionMapper.updatePositionFromDto(positionCreateDto, position);
+        Position updatedPosition = positionRepository.save(position);
+        employeeSearchCache.invalidateAll();
+        return positionMapper.toDto(updatedPosition);
+    }
+
+    @Transactional
+    public PositionDto patchPosition(Long id, PositionPatchDto positionCreateDto) {
+        Position position = positionRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(POSITION_NOT_FOUND_MESSAGE + id));
+        positionMapper.updatePositionFromPatchDto(positionCreateDto, position);
         Position updatedPosition = positionRepository.save(position);
         employeeSearchCache.invalidateAll();
         return positionMapper.toDto(updatedPosition);

@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.dto.create.RoleCreateDto;
 import com.example.employeemanagementsystem.dto.get.RoleDto;
+import com.example.employeemanagementsystem.dto.patch.RolePatchDto;
 import com.example.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.example.employeemanagementsystem.mapper.RoleMapper;
 import com.example.employeemanagementsystem.model.Role;
@@ -63,6 +64,17 @@ public class RoleService {
             .orElseThrow(
                 () -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
         roleMapper.updateRoleFromDto(roleCreateDto, role);
+        Role updatedRole = roleRepository.save(role);
+        employeeSearchCache.invalidateAll();
+        return roleMapper.toDto(updatedRole);
+    }
+
+    @Transactional
+    public RoleDto patchRole(Long id, RolePatchDto roleCreateDto) {
+        Role role = roleRepository.findById(id)
+            .orElseThrow(
+                () -> new ResourceNotFoundException(ROLE_NOT_FOUND_WITH_ID_MESSAGE + id));
+        roleMapper.updateRoleFromPatchDto(roleCreateDto, role);
         Role updatedRole = roleRepository.save(role);
         employeeSearchCache.invalidateAll();
         return roleMapper.toDto(updatedRole);

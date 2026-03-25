@@ -6,6 +6,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.example.employeemanagementsystem.dto.create.DepartmentCreateDto;
+import com.example.employeemanagementsystem.dto.patch.DepartmentPatchDto;
 import com.example.employeemanagementsystem.dto.get.DepartmentDto;
 import com.example.employeemanagementsystem.model.Department;
 
@@ -25,4 +26,8 @@ public interface DepartmentMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "employees", ignore = true)
     void updateDepartmentFromDto(DepartmentCreateDto dto, @MappingTarget Department entity);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "employees", ignore = true)
+    void updateDepartmentFromPatchDto(DepartmentPatchDto dto, @MappingTarget Department entity);
 }

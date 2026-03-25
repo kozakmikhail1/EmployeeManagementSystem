@@ -18,13 +18,17 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.employeemanagementsystem.dto.create.DepartmentCreateDto;
 import com.example.employeemanagementsystem.dto.get.DepartmentDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
+import com.example.employeemanagementsystem.dto.patch.DepartmentPatchDto;
 import com.example.employeemanagementsystem.service.DepartmentService;
 import com.example.employeemanagementsystem.service.EmployeeService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/departments")
+@Tag(name = "Departments", description = "Operations on departments")
 public class DepartmentController {
 
     private final DepartmentService departmentService;
@@ -37,20 +41,22 @@ public class DepartmentController {
         this.departmentService = departmentService;
         this.employeeService = employeeService;
     }
-
     @GetMapping("/{id}")
+    @Operation(summary = "Get department by id")
     public ResponseEntity<DepartmentDto> getDepartmentById(@PathVariable Long id) {
         DepartmentDto departmentDto = departmentService.getDepartmentById(id);
         return ResponseEntity.ok(departmentDto);
     }
 
     @GetMapping
+    @Operation(summary = "Get all departments")
     public ResponseEntity<List<DepartmentDto>> getAllDepartments() {
         List<DepartmentDto> departments = departmentService.getAllDepartments();
         return ResponseEntity.ok(departments);
     }
 
     @PostMapping
+    @Operation(summary = "Create department")
     public ResponseEntity<DepartmentDto> createDepartment(
             @Valid @RequestBody DepartmentCreateDto departmentDto) {
         DepartmentDto createdDepartment = departmentService.createDepartment(departmentDto);
@@ -58,6 +64,7 @@ public class DepartmentController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update department")
     public ResponseEntity<DepartmentDto> updateDepartment(
             @PathVariable Long id,
             @Valid @RequestBody DepartmentCreateDto departmentDetails) {
@@ -67,20 +74,24 @@ public class DepartmentController {
     }
 
     @PatchMapping("/{id}")
+    @Operation(summary = "Partially update department")
     public ResponseEntity<DepartmentDto> patchDepartment(
             @PathVariable Long id,
-            @RequestBody DepartmentCreateDto departmentDetails) {
-        return updateDepartment(id, departmentDetails);
+            @Valid @RequestBody DepartmentPatchDto departmentDetails) {
+        DepartmentDto updatedDepartment = departmentService.patchDepartment(id, departmentDetails);
+        return ResponseEntity.ok(updatedDepartment);
     }
 
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete department")
     public ResponseEntity<Void> deleteDepartment(@PathVariable Long id) {
         departmentService.deleteDepartment(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{departmentId}/employees")
+    @Operation(summary = "Get employees by department")
     public ResponseEntity<List<EmployeeDto>> getEmployeesByDepartment(
             @PathVariable Long departmentId) {
         List<EmployeeDto> employees = employeeService.getEmployeesByDepartmentId(departmentId);

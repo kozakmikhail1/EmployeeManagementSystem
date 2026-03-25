@@ -1,4 +1,4 @@
-package com.example.employeemanagementsystem.dto.create;
+package com.example.employeemanagementsystem.dto.patch;
 
 import java.util.Set;
 
@@ -7,21 +7,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-@Schema(description = "User create/update payload")
+@Schema(description = "User patch payload")
 @Getter
 @Setter
-public class UserCreateDto {
+public class UserPatchDto {
 
-    @NotBlank(message = "Username cannot be blank")
     @Size(min = 4, max = 20, message = "Username must be between 4 and 20 characters")
     private String username;
 
-    @NotBlank(message = "Password cannot be blank")
     @JsonProperty(access = Access.WRITE_ONLY)
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;

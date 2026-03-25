@@ -22,13 +22,17 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
 import com.example.employeemanagementsystem.dto.create.EmployeeWithUserCreateDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
+import com.example.employeemanagementsystem.dto.patch.EmployeePatchDto;
 import com.example.employeemanagementsystem.service.EmployeeService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 
 @RestController
 @RequestMapping("/api/employees")
+@Tag(name = "Employees", description = "Operations on employees")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
@@ -39,12 +43,14 @@ public class EmployeeController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get employee by id")
     public ResponseEntity<EmployeeDto> getEmployeeById(@PathVariable Long id) {
         EmployeeDto employeeDto = employeeService.getEmployeeDtoById(id);
         return ResponseEntity.ok(employeeDto);
     }
 
     @GetMapping(params = "!departmentId")
+    @Operation(summary = "Get all employees with optional salary range filter")
     public ResponseEntity<List<EmployeeDto>> getAllEmployees(
             @RequestParam(value = "min_salary", required = false) BigDecimal minSalary,
             @RequestParam(value = "max_salary", required = false) BigDecimal maxSalary) {
@@ -55,6 +61,7 @@ public class EmployeeController {
     }
 
     @GetMapping(params = "departmentId")
+    @Operation(summary = "Get employees by department id")
     public ResponseEntity<List<EmployeeDto>> getAllEmployeesByDepartment(
             @Positive @RequestParam(value = "departmentId", defaultValue = "1") Long departmentId) {
         List<EmployeeDto> employees = employeeService.getEmployeesByDepartmentId(departmentId);
@@ -62,6 +69,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/")
+    @Operation(summary = "Get employees by position id")
     public ResponseEntity<List<EmployeeDto>> getAllEmployeesByPosition(
             @Positive @RequestParam(value = "positionId") Long positionId) {
         List<EmployeeDto> employees = employeeService.getEmployeesByPositionId(positionId);
@@ -69,6 +77,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/search/jpql")
+    @Operation(summary = "Search employees with nested filters (JPQL)")
     public ResponseEntity<Page<EmployeeDto>> searchEmployeesWithNestedFilterJpql(
             @RequestParam(value = "departmentName", required = false) String departmentName,
             @RequestParam(value = "roleName", required = false) String roleName,
@@ -80,6 +89,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/search/native")
+    @Operation(summary = "Search employees with nested filters (native SQL)")
     public ResponseEntity<Page<EmployeeDto>> searchEmployeesWithNestedFilterNative(
             @RequestParam(value = "departmentName", required = false) String departmentName,
             @RequestParam(value = "roleName", required = false) String roleName,
@@ -91,6 +101,7 @@ public class EmployeeController {
     }
 
     @PostMapping
+    @Operation(summary = "Create employee")
     public ResponseEntity<EmployeeDto> createEmployee(
             @Valid @RequestBody EmployeeCreateDto employeeDto) {
         EmployeeDto createdEmployee = employeeService.createEmployee(employeeDto);
@@ -98,6 +109,7 @@ public class EmployeeController {
     }
 
     @PostMapping("/user")
+    @Operation(summary = "Create employee with user")
     public ResponseEntity<EmployeeDto> createEmployeeWithUser(
             @Valid @RequestBody EmployeeWithUserCreateDto employeeDto) {
 
@@ -108,6 +120,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update employee")
     public ResponseEntity<EmployeeDto> updateEmployee(
             @PathVariable Long id, @Valid @RequestBody EmployeeCreateDto employeeDto) {
         EmployeeDto updatedEmployee = employeeService.updateEmployee(id, employeeDto);
@@ -115,12 +128,15 @@ public class EmployeeController {
     }
 
     @PatchMapping("/{id}")
+    @Operation(summary = "Partially update employee")
     public ResponseEntity<EmployeeDto> patchEmployee(
-            @PathVariable Long id, @RequestBody EmployeeCreateDto employeeDto) {
-        return updateEmployee(id, employeeDto);
+            @PathVariable Long id, @Valid @RequestBody EmployeePatchDto employeeDto) {
+        EmployeeDto updatedEmployee = employeeService.patchEmployee(id, employeeDto);
+        return ResponseEntity.ok(updatedEmployee);
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete employee")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
