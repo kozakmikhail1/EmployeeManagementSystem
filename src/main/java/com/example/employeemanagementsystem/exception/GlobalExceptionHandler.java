@@ -3,6 +3,8 @@ package com.example.employeemanagementsystem.exception;
 import java.time.Instant;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +14,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
@@ -29,6 +28,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleResourceNotFound(
             ResourceNotFoundException exception,
             HttpServletRequest request) {
+        LOGGER.warn("Not found at {}: {}", request.getRequestURI(), exception.getMessage());
         return buildError(HttpStatus.NOT_FOUND, exception.getMessage(), request.getRequestURI());
     }
 
@@ -36,6 +36,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleResourceConflict(
             ResourceConflictException exception,
             HttpServletRequest request) {
+        LOGGER.warn("Conflict at {}: {}", request.getRequestURI(), exception.getMessage());
         return buildError(HttpStatus.CONFLICT, exception.getMessage(), request.getRequestURI());
     }
 
@@ -62,6 +63,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleMethodArgumentNotValid(
             MethodArgumentNotValidException exception,
             HttpServletRequest request) {
+        LOGGER.warn("Validation failed at {}: {}", request.getRequestURI(), exception.getMessage());
         List<ApiErrorDetail> details = exception.getBindingResult().getFieldErrors().stream()
                 .map(error -> new ApiErrorDetail(error.getField(), error.getDefaultMessage()))
                 .toList();
@@ -76,6 +78,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleConstraintViolation(
             ConstraintViolationException exception,
             HttpServletRequest request) {
+        LOGGER.warn("Constraint violation at {}: {}", request.getRequestURI(), exception.getMessage());
         List<ApiErrorDetail> details = exception.getConstraintViolations().stream()
                 .map(violation -> new ApiErrorDetail(
                         violation.getPropertyPath().toString(),
@@ -93,6 +96,7 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException exception,
             HttpServletRequest request) {
         String message = "Invalid value for parameter '" + exception.getName() + "'";
+        LOGGER.warn("Type mismatch at {}: {}", request.getRequestURI(), message);
         return buildError(HttpStatus.BAD_REQUEST, message, request.getRequestURI());
     }
 
@@ -100,6 +104,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleHttpMessageNotReadable(
             HttpMessageNotReadableException exception,
             HttpServletRequest request) {
+        LOGGER.warn("Malformed JSON at {}: {}", request.getRequestURI(), exception.getMessage());
         return buildError(HttpStatus.BAD_REQUEST, "Malformed JSON request", request.getRequestURI());
     }
 
