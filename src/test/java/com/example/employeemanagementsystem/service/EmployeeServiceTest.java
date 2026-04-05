@@ -96,9 +96,10 @@ class EmployeeServiceTest {
 
         when(employeeMapper.toEntity(dto)).thenReturn(entity);
         when(employeeRepository.existsByUserId(10L)).thenReturn(true);
+        List<EmployeeCreateDto> employees = List.of(dto);
 
         assertThrows(ResourceConflictException.class,
-                () -> employeeService.createEmployeesBulk(List.of(dto)));
+                () -> employeeService.createEmployeesBulk(employees));
 
         verify(employeeRepository, never()).save(entity);
         verify(employeeSearchCache).invalidateAll();
@@ -123,9 +124,10 @@ class EmployeeServiceTest {
         when(employeeRepository.save(entity1)).thenReturn(saved1);
         when(employeeMapper.toDto(saved1)).thenReturn(out1);
         when(employeeRepository.existsByUserId(10L)).thenReturn(true);
+        List<EmployeeCreateDto> employees = List.of(dto1, dto2);
 
         assertThrows(ResourceConflictException.class,
-                () -> employeeService.createEmployeesBulkWithoutTransaction(List.of(dto1, dto2)));
+                () -> employeeService.createEmployeesBulkWithoutTransaction(employees));
 
         verify(employeeRepository).save(entity1);
         verify(employeeRepository, never()).save(entity2);

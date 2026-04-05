@@ -22,20 +22,28 @@ public class RequestErrorLoggingFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
+        String requestInfo = request.getMethod() + " " + request.getRequestURI();
         boolean exceptionThrown = false;
         try {
             filterChain.doFilter(request, response);
         } catch (RuntimeException | IOException | ServletException ex) {
             exceptionThrown = true;
-            LOGGER.error("Unhandled exception for {} {}", request.getMethod(), request.getRequestURI(), ex);
-            throw ex;
+            LOGGER.error("Unhandled exception for {}", requestInfo, ex);
+            if (ex instanceof IOException ioException) {
+                throw new IOException("I/O error while handling request " + requestInfo, ioException);
+            }
+            if (ex instanceof ServletException servletException) {
+                throw new ServletException("Servlet error while handling request " + requestInfo,
+                        servletException);
+            }
+            throw new RuntimeException("Unexpected error while handling request " + requestInfo, ex);
         } finally {
             int status = response.getStatus();
             if (status >= 400 && !exceptionThrown) {
                 if (status >= 500) {
-                    LOGGER.error("Request failed {} {} -> {}", request.getMethod(), request.getRequestURI(), status);
+                    LOGGER.error("Request failed {} -> {}", requestInfo, status);
                 } else {
-                    LOGGER.warn("Request failed {} {} -> {}", request.getMethod(), request.getRequestURI(), status);
+                    LOGGER.warn("Request failed {} -> {}", requestInfo, status);
                 }
             }
         }

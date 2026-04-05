@@ -36,6 +36,7 @@ public class EmployeeService {
     private static final String EMPLOYEE_NOT_FOUND_MESS = "Employee not found with id ";
     private static final String USER_ALREADY_ASSIGNED_MESSAGE =
             "User is already assigned to another employee. User id ";
+    private static final String USER_NOT_FOUND_MESSAGE = "User not found with id ";
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
@@ -76,7 +77,7 @@ public class EmployeeService {
             }
             User user = userRepository.findById(employeeDto.getUserId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "User not found with id " + employeeDto.getUserId()));
+                            USER_NOT_FOUND_MESSAGE + employeeDto.getUserId()));
             employee.setUser(user);
         }
         Employee savedEmployee = employeeRepository.save(employee);
@@ -143,7 +144,7 @@ public class EmployeeService {
                     .findById(employeeDto.getUserId())
                     .orElseThrow(
                             () -> new ResourceNotFoundException(
-                                    "User not found with id " + employeeDto.getUserId()));
+                                    USER_NOT_FOUND_MESSAGE + employeeDto.getUserId()));
             employee.setUser(user);
         }
 
@@ -316,7 +317,7 @@ public class EmployeeService {
                     }
                     User user = userRepository.findById(userId)
                             .orElseThrow(() -> new ResourceNotFoundException(
-                                    "User not found with id " + userId));
+                                    USER_NOT_FOUND_MESSAGE + userId));
                     employee.setUser(user);
                 });
         return employee;
