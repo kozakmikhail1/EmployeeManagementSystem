@@ -16,6 +16,8 @@ import jakarta.servlet.http.HttpServletResponse;
 public class RequestErrorLoggingFilter extends OncePerRequestFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestErrorLoggingFilter.class);
+    private static final int CLIENT_ERROR_STATUS = 400;
+    private static final int SERVER_ERROR_STATUS = 500;
 
     @Override
     protected void doFilterInternal(
@@ -28,22 +30,19 @@ public class RequestErrorLoggingFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (IOException ex) {
             exceptionThrown = true;
-            LOGGER.error("Unhandled exception for {}", requestInfo, ex);
             throw new IOException("I/O error while handling request " + requestInfo, ex);
         } catch (ServletException ex) {
             exceptionThrown = true;
-            LOGGER.error("Unhandled exception for {}", requestInfo, ex);
             throw new ServletException("Servlet error while handling request " + requestInfo, ex);
         } catch (RuntimeException ex) {
             exceptionThrown = true;
-            LOGGER.error("Unhandled exception for {}", requestInfo, ex);
             throw new RequestProcessingException(
                     "Unexpected runtime error while handling request " + requestInfo,
                     ex);
         } finally {
             int status = response.getStatus();
-            if (status >= 400 && !exceptionThrown) {
-                if (status >= 500) {
+            if (status >= CLIENT_ERROR_STATUS && !exceptionThrown) {
+                if (status >= SERVER_ERROR_STATUS) {
                     LOGGER.error("Request failed {} -> {}", requestInfo, status);
                 } else {
                     LOGGER.warn("Request failed {} -> {}", requestInfo, status);

@@ -39,4 +39,5 @@ jobs:
           -Dsonar.host.url=https://sonarcloud.io
           -Dsonar.organization=kozakmikhail1
           -Dsonar.projectKey=kozakmikhail1_EmployeeManagementSystem
-          -Dsonar.coverage.exclusions=**/*
+          -Dsonar.coverage.inclusions=src/main/java/com/example/employeemanagementsystem/service/**/*.java
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
