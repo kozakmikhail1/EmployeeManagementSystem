@@ -33,11 +33,12 @@ jobs:
       - name: SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: >
-          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar
-          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
-          -Dsonar.host.url=https://sonarcloud.io
-          -Dsonar.organization=kozakmikhail1
-          -Dsonar.projectKey=kozakmikhail1_EmployeeManagementSystem
-          -Dsonar.coverage.inclusions=src/main/java/com/example/employeemanagementsystem/service/**/*.java
-          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+        run: |
+          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=kozakmikhail1 \
+            -Dsonar.projectKey=kozakmikhail1_EmployeeManagementSystem \
+            -Dsonar.inclusions='src/main/java/com/example/employeemanagementsystem/service/**/*.java' \
+            -Dsonar.coverage.inclusions='src/main/java/com/example/employeemanagementsystem/service/**/*.java' \
+            -Dsonar.coverage.jacoco.xmlReportPaths='target/site/jacoco/jacoco.xml'
