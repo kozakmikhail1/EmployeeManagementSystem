@@ -95,9 +95,10 @@ class DepartmentServiceTest {
     @Test
     void patchDepartmentNotFoundThrows() {
         when(departmentRepository.findById(1L)).thenReturn(Optional.empty());
+        DepartmentPatchDto patchDto = new DepartmentPatchDto();
 
         assertThrows(ResourceNotFoundException.class,
-                () -> departmentService.patchDepartment(1L, new DepartmentPatchDto()));
+                () -> departmentService.patchDepartment(1L, patchDto));
     }
 
     @Test
@@ -139,9 +140,10 @@ class DepartmentServiceTest {
     @Test
     void updateDepartmentNotFoundThrows() {
         when(departmentRepository.findById(22L)).thenReturn(Optional.empty());
+        DepartmentCreateDto createDto = new DepartmentCreateDto();
 
         assertThrows(ResourceNotFoundException.class,
-                () -> departmentService.updateDepartment(22L, new DepartmentCreateDto()));
+                () -> departmentService.updateDepartment(22L, createDto));
     }
 
     @Test

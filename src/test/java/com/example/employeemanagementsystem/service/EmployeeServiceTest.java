@@ -348,9 +348,10 @@ class EmployeeServiceTest {
     @Test
     void updateEmployeeNotFoundThrows() {
         when(employeeRepository.findById(99L)).thenReturn(Optional.empty());
+        EmployeeCreateDto createDto = new EmployeeCreateDto();
 
         assertThrows(ResourceNotFoundException.class,
-                () -> employeeService.updateEmployee(99L, new EmployeeCreateDto()));
+                () -> employeeService.updateEmployee(99L, createDto));
     }
 
     @Test
@@ -428,9 +429,10 @@ class EmployeeServiceTest {
     @Test
     void patchEmployeeNotFoundThrows() {
         when(employeeRepository.findById(222L)).thenReturn(Optional.empty());
+        EmployeePatchDto patchDto = new EmployeePatchDto();
 
         assertThrows(ResourceNotFoundException.class,
-                () -> employeeService.patchEmployee(222L, new EmployeePatchDto()));
+                () -> employeeService.patchEmployee(222L, patchDto));
     }
 
     @Test
@@ -674,13 +676,14 @@ class EmployeeServiceTest {
         EmployeeCreateDto dto = new EmployeeCreateDto();
         dto.setUserId(201L);
         Employee employee = new Employee();
+        List<EmployeeCreateDto> employeeDtos = List.of(dto);
 
         when(employeeMapper.toEntity(dto)).thenReturn(employee);
         when(employeeRepository.existsByUserId(201L)).thenReturn(false);
         when(userRepository.findById(201L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,
-                () -> employeeService.createEmployeesBulk(List.of(dto)));
+                () -> employeeService.createEmployeesBulk(employeeDtos));
         verify(employeeSearchCache).invalidateAll();
     }
 

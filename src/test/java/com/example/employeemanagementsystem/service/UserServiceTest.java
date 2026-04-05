@@ -227,9 +227,10 @@ class UserServiceTest {
     @Test
     void updateUserNotFoundThrows() {
         when(userRepository.findById(60L)).thenReturn(Optional.empty());
+        UserCreateDto createDto = new UserCreateDto();
 
         assertThrows(ResourceNotFoundException.class,
-                () -> userService.updateUser(60L, new UserCreateDto()));
+                () -> userService.updateUser(60L, createDto));
     }
 
     @Test
@@ -317,9 +318,10 @@ class UserServiceTest {
     @Test
     void patchUserNotFoundThrows() {
         when(userRepository.findById(61L)).thenReturn(Optional.empty());
+        UserPatchDto patchDto = new UserPatchDto();
 
         assertThrows(ResourceNotFoundException.class,
-                () -> userService.patchUser(61L, new UserPatchDto()));
+                () -> userService.patchUser(61L, patchDto));
     }
 
     @Test

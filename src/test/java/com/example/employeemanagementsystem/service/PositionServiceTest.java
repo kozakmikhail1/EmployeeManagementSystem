@@ -121,9 +121,10 @@ class PositionServiceTest {
     @Test
     void updatePositionNotFoundThrows() {
         when(positionRepository.findById(70L)).thenReturn(Optional.empty());
+        PositionCreateDto createDto = new PositionCreateDto();
 
         assertThrows(ResourceNotFoundException.class,
-                () -> positionService.updatePosition(70L, new PositionCreateDto()));
+                () -> positionService.updatePosition(70L, createDto));
     }
 
     @Test
@@ -147,9 +148,10 @@ class PositionServiceTest {
     @Test
     void patchPositionNotFoundThrows() {
         when(positionRepository.findById(71L)).thenReturn(Optional.empty());
+        PositionPatchDto patchDto = new PositionPatchDto();
 
         assertThrows(ResourceNotFoundException.class,
-                () -> positionService.patchPosition(71L, new PositionPatchDto()));
+                () -> positionService.patchPosition(71L, patchDto));
     }
 
     @Test

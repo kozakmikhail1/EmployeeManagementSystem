@@ -97,9 +97,10 @@ class RoleServiceTest {
     @Test
     void updateRoleNotFoundThrows() {
         when(roleRepository.findById(10L)).thenReturn(Optional.empty());
+        RoleCreateDto createDto = new RoleCreateDto();
 
         assertThrows(ResourceNotFoundException.class,
-                () -> roleService.updateRole(10L, new RoleCreateDto()));
+                () -> roleService.updateRole(10L, createDto));
     }
 
     @Test
@@ -141,9 +142,10 @@ class RoleServiceTest {
     @Test
     void patchRoleNotFoundThrows() {
         when(roleRepository.findById(13L)).thenReturn(Optional.empty());
+        RolePatchDto patchDto = new RolePatchDto();
 
         assertThrows(ResourceNotFoundException.class,
-                () -> roleService.patchRole(13L, new RolePatchDto()));
+                () -> roleService.patchRole(13L, patchDto));
     }
 
     @Test
