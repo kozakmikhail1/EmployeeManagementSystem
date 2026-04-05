@@ -85,6 +85,16 @@ public class EmployeeService {
     }
 
     @Transactional
+    public List<EmployeeDto> createEmployeesBulk(List<EmployeeCreateDto> employeeDtos) {
+        return bulkCreateEmployeesInternal(employeeDtos);
+    }
+
+    public List<EmployeeDto> createEmployeesBulkWithoutTransaction(
+            List<EmployeeCreateDto> employeeDtos) {
+        return bulkCreateEmployeesInternal(employeeDtos);
+    }
+
+    @Transactional
     public EmployeeDto createEmployeeWithUser(EmployeeCreateDto employeeDto, UserCreateDto userDto) {
         Employee employee = employeeMapper.toEntity(employeeDto);
         User user = userMapper.toEntity(userDto);
@@ -274,5 +284,41 @@ public class EmployeeService {
 
     private void invalidateEmployeeSearchCache() {
         employeeSearchCache.invalidateAll();
+    }
+
+    private List<EmployeeDto> bulkCreateEmployeesInternal(List<EmployeeCreateDto> employeeDtos) {
+        if (employeeDtos == null || employeeDtos.isEmpty()) {
+            return List.of();
+        }
+
+        try {
+            return employeeDtos.stream()
+                    .map(this::prepareEmployeeForCreate)
+                    .map(employeeRepository::save)
+                    .map(employeeMapper::toDto)
+                    .toList();
+        } finally {
+            invalidateEmployeeSearchCache();
+        }
+    }
+
+    private Employee prepareEmployeeForCreate(EmployeeCreateDto employeeDto) {
+        if (employeeDto == null) {
+            throw new IllegalArgumentException("Employee payload cannot be null");
+        }
+
+        Employee employee = employeeMapper.toEntity(employeeDto);
+        Optional.ofNullable(employeeDto.getUserId())
+                .ifPresent(userId -> {
+                    if (employeeRepository.existsByUserId(userId)) {
+                        throw new ResourceConflictException(
+                                USER_ALREADY_ASSIGNED_MESSAGE + userId);
+                    }
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new ResourceNotFoundException(
+                                    "User not found with id " + userId));
+                    employee.setUser(user);
+                });
+        return employee;
     }
 }

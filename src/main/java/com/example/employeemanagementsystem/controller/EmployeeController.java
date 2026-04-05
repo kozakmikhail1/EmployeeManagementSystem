@@ -108,6 +108,23 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
     }
 
+    @PostMapping("/bulk")
+    @Operation(summary = "Create employees in bulk (transactional)")
+    public ResponseEntity<List<EmployeeDto>> createEmployeesBulk(
+            @Valid @RequestBody List<@Valid EmployeeCreateDto> employeeDtos) {
+        List<EmployeeDto> createdEmployees = employeeService.createEmployeesBulk(employeeDtos);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployees);
+    }
+
+    @PostMapping("/bulk-no-tx")
+    @Operation(summary = "Create employees in bulk (no transaction)")
+    public ResponseEntity<List<EmployeeDto>> createEmployeesBulkWithoutTransaction(
+            @Valid @RequestBody List<@Valid EmployeeCreateDto> employeeDtos) {
+        List<EmployeeDto> createdEmployees =
+                employeeService.createEmployeesBulkWithoutTransaction(employeeDtos);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployees);
+    }
+
     @PostMapping("/user")
     @Operation(summary = "Create employee with user")
     public ResponseEntity<EmployeeDto> createEmployeeWithUser(
