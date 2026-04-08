@@ -1,10 +1,15 @@
 package com.example.employeemanagementsystem.service;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -87,12 +92,39 @@ public class EmployeeService {
 
     @Transactional
     public List<EmployeeDto> createEmployeesBulk(List<EmployeeCreateDto> employeeDtos) {
-        return bulkCreateEmployeesInternal(employeeDtos);
+        List<Employee> employees = prepareEmployeesForBulk(employeeDtos);
+        if (employees.isEmpty()) {
+            return List.of();
+        }
+
+        List<EmployeeDto> savedEmployees = employeeRepository.saveAll(employees).stream()
+                .map(employeeMapper::toDto)
+                .toList();
+        invalidateEmployeeSearchCache();
+        return savedEmployees;
     }
 
     public List<EmployeeDto> createEmployeesBulkWithoutTransaction(
             List<EmployeeCreateDto> employeeDtos) {
-        return bulkCreateEmployeesInternal(employeeDtos);
+        if (employeeDtos == null || employeeDtos.isEmpty()) {
+            return List.of();
+        }
+
+        List<EmployeeDto> savedEmployees = new java.util.ArrayList<>();
+        try {
+            for (EmployeeCreateDto employeeDto : employeeDtos) {
+                Employee employee = prepareEmployeeForCreate(employeeDto, Collections.emptyMap());
+                Employee savedEmployee = employeeRepository.save(employee);
+                savedEmployees.add(employeeMapper.toDto(savedEmployee));
+            }
+            invalidateEmployeeSearchCache();
+            return savedEmployees;
+        } catch (RuntimeException exception) {
+            if (!savedEmployees.isEmpty()) {
+                invalidateEmployeeSearchCache();
+            }
+            throw exception;
+        }
     }
 
     @Transactional
@@ -287,23 +319,33 @@ public class EmployeeService {
         employeeSearchCache.invalidateAll();
     }
 
-    private List<EmployeeDto> bulkCreateEmployeesInternal(List<EmployeeCreateDto> employeeDtos) {
+    private List<Employee> prepareEmployeesForBulk(List<EmployeeCreateDto> employeeDtos) {
         if (employeeDtos == null || employeeDtos.isEmpty()) {
             return List.of();
         }
 
-        try {
-            return employeeDtos.stream()
-                    .map(this::prepareEmployeeForCreate)
-                    .map(employeeRepository::save)
-                    .map(employeeMapper::toDto)
-                    .toList();
-        } finally {
-            invalidateEmployeeSearchCache();
+        if (employeeDtos.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("Employee payload cannot be null");
         }
+
+        List<Long> userIds = employeeDtos.stream()
+                .map(EmployeeCreateDto::getUserId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        validateDuplicateUserIds(userIds);
+        validateUsersAvailableForBulk(userIds);
+
+        Map<Long, User> usersById = loadUsersById(userIds);
+
+        return employeeDtos.stream()
+                .map(employeeDto -> prepareEmployeeForCreate(employeeDto, usersById))
+                .toList();
     }
 
-    private Employee prepareEmployeeForCreate(EmployeeCreateDto employeeDto) {
+    private Employee prepareEmployeeForCreate(
+            EmployeeCreateDto employeeDto,
+            Map<Long, User> usersById) {
         if (employeeDto == null) {
             throw new IllegalArgumentException("Employee payload cannot be null");
         }
@@ -311,15 +353,72 @@ public class EmployeeService {
         Employee employee = employeeMapper.toEntity(employeeDto);
         Optional.ofNullable(employeeDto.getUserId())
                 .ifPresent(userId -> {
-                    if (employeeRepository.existsByUserId(userId)) {
-                        throw new ResourceConflictException(
-                                USER_ALREADY_ASSIGNED_MESSAGE + userId);
-                    }
-                    User user = userRepository.findById(userId)
-                            .orElseThrow(() -> new ResourceNotFoundException(
-                                    USER_NOT_FOUND_MESSAGE + userId));
+                    User user = resolveUserForCreate(userId, usersById);
                     employee.setUser(user);
                 });
         return employee;
+    }
+
+    private User resolveUserForCreate(Long userId, Map<Long, User> usersById) {
+        if (!usersById.isEmpty()) {
+            return Optional.ofNullable(usersById.get(userId))
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            USER_NOT_FOUND_MESSAGE + userId));
+        }
+
+        if (employeeRepository.existsByUserId(userId)) {
+            throw new ResourceConflictException(USER_ALREADY_ASSIGNED_MESSAGE + userId);
+        }
+
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        USER_NOT_FOUND_MESSAGE + userId));
+    }
+
+    private void validateDuplicateUserIds(List<Long> userIds) {
+        userIds.stream()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getValue() > 1)
+                .findFirst()
+                .ifPresent(entry -> {
+                    throw new ResourceConflictException(
+                            "Bulk payload contains duplicate user id " + entry.getKey());
+                });
+    }
+
+    private void validateUsersAvailableForBulk(List<Long> userIds) {
+        if (userIds.isEmpty()) {
+            return;
+        }
+
+        employeeRepository.findAllByUserIdIn(userIds).stream()
+                .map(Employee::getUser)
+                .filter(Objects::nonNull)
+                .map(User::getId)
+                .findFirst()
+                .ifPresent(userId -> {
+                    throw new ResourceConflictException(
+                            USER_ALREADY_ASSIGNED_MESSAGE + userId);
+                });
+    }
+
+    private Map<Long, User> loadUsersById(List<Long> userIds) {
+        if (userIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<Long, User> usersById = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
+        userIds.stream()
+                .filter(userId -> !usersById.containsKey(userId))
+                .findFirst()
+                .ifPresent(userId -> {
+                    throw new ResourceNotFoundException(USER_NOT_FOUND_MESSAGE + userId);
+                });
+
+        return usersById;
     }
 }

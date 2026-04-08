@@ -25,6 +25,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     Employee findByUserId(Long id);
 
+    List<Employee> findAllByUserIdIn(List<Long> userIds);
+
     List<Employee> findByPositionId(Long positionId);
 
     boolean existsByPositionId(Long positionId);
