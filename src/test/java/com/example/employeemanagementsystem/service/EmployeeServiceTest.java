@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,8 +27,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
-import com.example.employeemanagementsystem.dto.create.UserCreateDto;
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
+import com.example.employeemanagementsystem.dto.create.UserCreateDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
 import com.example.employeemanagementsystem.dto.patch.EmployeePatchDto;
 import com.example.employeemanagementsystem.exception.ResourceConflictException;
@@ -516,7 +517,7 @@ class EmployeeServiceTest {
     @Test
     void getEmployeesBySalaryRangeWithoutLimitsUsesFindAll() {
         when(employeeRepository.findAll()).thenReturn(List.of(new Employee()));
-        when(employeeMapper.toDto(any(List.class))).thenReturn(List.of(new EmployeeDto()));
+        when(employeeMapper.toDto(anyList())).thenReturn(List.of(new EmployeeDto()));
 
         List<EmployeeDto> result = employeeService.getEmployeesBySalaryRange(null, null);
 
@@ -528,7 +529,7 @@ class EmployeeServiceTest {
     void getEmployeesBySalaryRangeWithOnlyMinUsesGreaterThanEqualQuery() {
         BigDecimal min = BigDecimal.valueOf(1000);
         when(employeeRepository.findBySalaryGreaterThanEqual(min)).thenReturn(List.of(new Employee()));
-        when(employeeMapper.toDto(any(List.class))).thenReturn(List.of(new EmployeeDto()));
+        when(employeeMapper.toDto(anyList())).thenReturn(List.of(new EmployeeDto()));
 
         List<EmployeeDto> result = employeeService.getEmployeesBySalaryRange(min, null);
 
@@ -540,7 +541,7 @@ class EmployeeServiceTest {
     void getEmployeesBySalaryRangeWithOnlyMaxUsesLessThanEqualQuery() {
         BigDecimal max = BigDecimal.valueOf(3000);
         when(employeeRepository.findBySalaryLessThanEqual(max)).thenReturn(List.of(new Employee()));
-        when(employeeMapper.toDto(any(List.class))).thenReturn(List.of(new EmployeeDto()));
+        when(employeeMapper.toDto(anyList())).thenReturn(List.of(new EmployeeDto()));
 
         List<EmployeeDto> result = employeeService.getEmployeesBySalaryRange(null, max);
 
@@ -553,7 +554,7 @@ class EmployeeServiceTest {
         BigDecimal min = BigDecimal.valueOf(1000);
         BigDecimal max = BigDecimal.valueOf(5000);
         when(employeeRepository.findBySalaryBetween(min, max)).thenReturn(List.of(new Employee()));
-        when(employeeMapper.toDto(any(List.class))).thenReturn(List.of(new EmployeeDto()));
+        when(employeeMapper.toDto(anyList())).thenReturn(List.of(new EmployeeDto()));
 
         List<EmployeeDto> result = employeeService.getEmployeesBySalaryRange(min, max);
 

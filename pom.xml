@@ -167,6 +167,7 @@
 
                 <executions>
                     <execution>
+                        <?m2e ignore?>
                         <id>checkstyle-validate</id>
                         <phase>validate</phase>
                         <goals>
