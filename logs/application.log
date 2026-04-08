@@ -28,3 +28,63 @@ This generated password is for development use only. Your security configuration
 2026-04-08 10:31:42.578 INFO  [SpringApplicationShutdownHook] o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
 2026-04-08 10:31:42.584 INFO  [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
 2026-04-08 10:31:42.585 INFO  [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-04-08 10:32:56.139 INFO  [background-preinit] o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
+2026-04-08 10:32:56.202 INFO  [main] c.e.e.s.EmployeeBulkTransactionIntegrationTest - Starting EmployeeBulkTransactionIntegrationTest using Java 25 with PID 15487 (started by user in /home/user/Programming/java/EmployeeManagementSystem)
+2026-04-08 10:32:56.202 DEBUG [main] c.e.e.s.EmployeeBulkTransactionIntegrationTest - Running with Spring Boot v3.2.4, Spring v6.1.5
+2026-04-08 10:32:56.203 INFO  [main] c.e.e.s.EmployeeBulkTransactionIntegrationTest - No active profile set, falling back to 1 default profile: "default"
+2026-04-08 10:32:56.714 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-08 10:32:56.762 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 42 ms. Found 5 JPA repository interfaces.
+2026-04-08 10:32:57.242 INFO  [main] o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-04-08 10:32:57.298 INFO  [main] org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-04-08 10:32:57.328 INFO  [main] o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2026-04-08 10:32:57.541 INFO  [main] o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-08 10:32:57.564 INFO  [main] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-04-08 10:32:57.839 INFO  [main] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:bulk_tx_test user=SA
+2026-04-08 10:32:57.841 INFO  [main] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-04-08 10:32:57.863 WARN  [main] org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-08 10:32:58.784 INFO  [main] o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-08 10:32:58.846 INFO  [main] o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-08 10:32:59.390 INFO  [main] o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-04-08 10:32:59.992 WARN  [main] o.s.b.a.s.s.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 89a9b157-6624-4732-b6d8-726a1c5a523a
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-04-08 10:33:00.095 INFO  [main] o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@1d4e3295, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@ec4b86f, org.springframework.security.web.context.SecurityContextHolderFilter@10706c7d, org.springframework.security.web.header.HeaderWriterFilter@65e47a2e, org.springframework.security.web.authentication.logout.LogoutFilter@77c53516, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@46384d3c, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@20d095cc, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@4d0e2bc2, org.springframework.security.web.access.ExceptionTranslationFilter@518799b5, org.springframework.security.web.access.intercept.AuthorizationFilter@50d26b6e]
+2026-04-08 10:33:00.289 INFO  [main] c.e.e.s.EmployeeBulkTransactionIntegrationTest - Started EmployeeBulkTransactionIntegrationTest in 4.471 seconds (process running for 5.465)
+2026-04-08 10:33:00.488 INFO  [main] c.e.e.a.ServiceExecutionTimeAspect - Service method EmployeeService.createEmployeesBulkWithoutTransaction(..) executed in 21 ms
+2026-04-08 10:33:00.542 INFO  [main] c.e.e.a.ServiceExecutionTimeAspect - Service method EmployeeService.createEmployeesBulk(..) executed in 2 ms
+2026-04-08 10:33:00.594 INFO  [SpringApplicationShutdownHook] o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-04-08 10:33:00.688 INFO  [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-04-08 10:33:00.689 INFO  [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-04-08 10:34:19.504 INFO  [background-preinit] o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
+2026-04-08 10:34:19.552 INFO  [main] c.e.e.s.EmployeeBulkTransactionIntegrationTest - Starting EmployeeBulkTransactionIntegrationTest using Java 25 with PID 16629 (started by user in /home/user/Programming/java/EmployeeManagementSystem)
+2026-04-08 10:34:19.553 DEBUG [main] c.e.e.s.EmployeeBulkTransactionIntegrationTest - Running with Spring Boot v3.2.4, Spring v6.1.5
+2026-04-08 10:34:19.553 INFO  [main] c.e.e.s.EmployeeBulkTransactionIntegrationTest - No active profile set, falling back to 1 default profile: "default"
+2026-04-08 10:34:20.126 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-08 10:34:20.181 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 46 ms. Found 5 JPA repository interfaces.
+2026-04-08 10:34:20.677 INFO  [main] o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-04-08 10:34:20.739 INFO  [main] org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-04-08 10:34:20.770 INFO  [main] o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2026-04-08 10:34:20.989 INFO  [main] o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-08 10:34:21.017 INFO  [main] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-04-08 10:34:21.339 INFO  [main] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:bulk_tx_test user=SA
+2026-04-08 10:34:21.340 INFO  [main] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-04-08 10:34:21.364 WARN  [main] org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-08 10:34:22.436 INFO  [main] o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-08 10:34:22.500 INFO  [main] o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-08 10:34:22.988 INFO  [main] o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-04-08 10:34:23.557 WARN  [main] o.s.b.a.s.s.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: a157699c-11f6-4201-a28e-6f905a1929d3
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-04-08 10:34:23.647 INFO  [main] o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@452e88a3, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@4eed96ca, org.springframework.security.web.context.SecurityContextHolderFilter@7d91d558, org.springframework.security.web.header.HeaderWriterFilter@367161ee, org.springframework.security.web.authentication.logout.LogoutFilter@17af85c3, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@3726bb3a, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@2e2f50d, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@6a96d1, org.springframework.security.web.access.ExceptionTranslationFilter@628a7c8c, org.springframework.security.web.access.intercept.AuthorizationFilter@214de096]
+2026-04-08 10:34:23.827 INFO  [main] c.e.e.s.EmployeeBulkTransactionIntegrationTest - Started EmployeeBulkTransactionIntegrationTest in 4.664 seconds (process running for 5.685)
+2026-04-08 10:34:24.019 INFO  [main] c.e.e.a.ServiceExecutionTimeAspect - Service method EmployeeService.createEmployeesBulkWithoutTransaction(..) executed in 20 ms
+2026-04-08 10:34:24.069 INFO  [main] c.e.e.a.ServiceExecutionTimeAspect - Service method EmployeeService.createEmployeesBulk(..) executed in 2 ms
+2026-04-08 10:34:24.121 INFO  [SpringApplicationShutdownHook] o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-04-08 10:34:24.241 INFO  [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-04-08 10:34:24.242 INFO  [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
