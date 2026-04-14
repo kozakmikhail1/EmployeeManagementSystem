@@ -21,8 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
 import com.example.employeemanagementsystem.dto.create.EmployeeWithUserCreateDto;
+import com.example.employeemanagementsystem.dto.create.AsyncSalaryUpdateItemDto;
+import com.example.employeemanagementsystem.dto.get.AsyncTaskStartResponseDto;
+import com.example.employeemanagementsystem.dto.get.AsyncTaskStatusDto;
+import com.example.employeemanagementsystem.dto.get.CounterValueDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
 import com.example.employeemanagementsystem.dto.patch.EmployeePatchDto;
+import com.example.employeemanagementsystem.service.AsyncSalaryUpdateService;
 import com.example.employeemanagementsystem.service.EmployeeService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,10 +41,14 @@ import jakarta.validation.constraints.Positive;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+    private final AsyncSalaryUpdateService asyncSalaryUpdateService;
 
     @Autowired
-    public EmployeeController(EmployeeService employeeService) {
+    public EmployeeController(
+            EmployeeService employeeService,
+            AsyncSalaryUpdateService asyncSalaryUpdateService) {
         this.employeeService = employeeService;
+        this.asyncSalaryUpdateService = asyncSalaryUpdateService;
     }
 
     @GetMapping("/{id}")
@@ -123,6 +132,27 @@ public class EmployeeController {
         List<EmployeeDto> createdEmployees =
                 employeeService.createEmployeesBulkWithoutTransaction(employeeDtos);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployees);
+    }
+
+    @PostMapping("/bulk-salary-async")
+    @Operation(summary = "Start async salary update in bulk")
+    public ResponseEntity<AsyncTaskStartResponseDto> startAsyncBulkSalaryUpdate(
+            @Valid @RequestBody List<@Valid AsyncSalaryUpdateItemDto> updates) {
+        String taskId = asyncSalaryUpdateService.startBulkSalaryUpdateTask(updates);
+        return ResponseEntity.accepted().body(new AsyncTaskStartResponseDto(taskId));
+    }
+
+    @GetMapping("/tasks/{taskId}")
+    @Operation(summary = "Get async task status")
+    public ResponseEntity<AsyncTaskStatusDto> getAsyncTaskStatus(@PathVariable String taskId) {
+        return ResponseEntity.ok(asyncSalaryUpdateService.getTaskStatus(taskId));
+    }
+
+    @GetMapping("/tasks/counters/salary-updates")
+    @Operation(summary = "Get total processed salary updates counter")
+    public ResponseEntity<CounterValueDto> getProcessedSalaryUpdatesCounter() {
+        long counterValue = asyncSalaryUpdateService.getProcessedItemsCounter();
+        return ResponseEntity.ok(new CounterValueDto("processedSalaryUpdates", counterValue));
     }
 
     @PostMapping("/user")

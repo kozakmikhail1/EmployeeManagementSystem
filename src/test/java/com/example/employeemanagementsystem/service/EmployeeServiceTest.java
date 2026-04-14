@@ -91,16 +91,14 @@ class EmployeeServiceTest {
 
         when(employeeMapper.toEntity(dto1)).thenReturn(entity1);
         when(employeeMapper.toEntity(dto2)).thenReturn(entity2);
-        when(employeeRepository.save(entity1)).thenReturn(saved1);
-        when(employeeRepository.save(entity2)).thenReturn(saved2);
+        when(employeeRepository.saveAll(List.of(entity1, entity2))).thenReturn(List.of(saved1, saved2));
         when(employeeMapper.toDto(saved1)).thenReturn(out1);
         when(employeeMapper.toDto(saved2)).thenReturn(out2);
 
         List<EmployeeDto> result = employeeService.createEmployeesBulk(List.of(dto1, dto2));
 
         assertEquals(2, result.size());
-        verify(employeeRepository).save(entity1);
-        verify(employeeRepository).save(entity2);
+        verify(employeeRepository).saveAll(List.of(entity1, entity2));
         verify(employeeSearchCache).invalidateAll();
     }
 
@@ -108,17 +106,19 @@ class EmployeeServiceTest {
     void createEmployeesBulkConflictOnUserThrows() {
         EmployeeCreateDto dto = new EmployeeCreateDto();
         dto.setUserId(10L);
-        Employee entity = new Employee();
-
-        when(employeeMapper.toEntity(dto)).thenReturn(entity);
-        when(employeeRepository.existsByUserId(10L)).thenReturn(true);
         List<EmployeeCreateDto> employees = List.of(dto);
+        User user = new User();
+        user.setId(10L);
+        Employee existingEmployee = new Employee();
+        existingEmployee.setUser(user);
+
+        when(employeeRepository.findAllByUserIdIn(List.of(10L))).thenReturn(List.of(existingEmployee));
 
         assertThrows(ResourceConflictException.class,
                 () -> employeeService.createEmployeesBulk(employees));
 
-        verify(employeeRepository, never()).save(entity);
-        verify(employeeSearchCache).invalidateAll();
+        verify(employeeRepository, never()).saveAll(anyList());
+        verify(employeeSearchCache, never()).invalidateAll();
     }
 
     @Test
@@ -171,7 +171,7 @@ class EmployeeServiceTest {
         List<EmployeeCreateDto> payload = Arrays.asList((EmployeeCreateDto) null);
 
         assertThrows(IllegalArgumentException.class, () -> employeeService.createEmployeesBulk(payload));
-        verify(employeeSearchCache).invalidateAll();
+        verify(employeeSearchCache, never()).invalidateAll();
     }
 
     @Test
@@ -386,6 +386,8 @@ class EmployeeServiceTest {
         Employee savedEmployee = new Employee();
         EmployeeDto employeeDto = new EmployeeDto();
         User user = new User();
+        user.setId(200L);
+        user.setId(200L);
 
         when(employeeRepository.findById(16L)).thenReturn(Optional.of(existingEmployee));
         when(employeeRepository.existsByUserIdAndIdNot(32L, 16L)).thenReturn(false);
@@ -658,11 +660,12 @@ class EmployeeServiceTest {
         Employee savedEmployee = new Employee();
         EmployeeDto employeeDto = new EmployeeDto();
         User user = new User();
+        user.setId(200L);
 
+        when(employeeRepository.findAllByUserIdIn(List.of(200L))).thenReturn(List.of());
+        when(userRepository.findAllById(List.of(200L))).thenReturn(List.of(user));
         when(employeeMapper.toEntity(dto)).thenReturn(employee);
-        when(employeeRepository.existsByUserId(200L)).thenReturn(false);
-        when(userRepository.findById(200L)).thenReturn(Optional.of(user));
-        when(employeeRepository.save(employee)).thenReturn(savedEmployee);
+        when(employeeRepository.saveAll(List.of(employee))).thenReturn(List.of(savedEmployee));
         when(employeeMapper.toDto(savedEmployee)).thenReturn(employeeDto);
 
         List<EmployeeDto> result = employeeService.createEmployeesBulk(List.of(dto));
@@ -676,16 +679,14 @@ class EmployeeServiceTest {
     void createEmployeesBulkWithUserNotFoundThrows() {
         EmployeeCreateDto dto = new EmployeeCreateDto();
         dto.setUserId(201L);
-        Employee employee = new Employee();
         List<EmployeeCreateDto> employeeDtos = List.of(dto);
 
-        when(employeeMapper.toEntity(dto)).thenReturn(employee);
-        when(employeeRepository.existsByUserId(201L)).thenReturn(false);
-        when(userRepository.findById(201L)).thenReturn(Optional.empty());
+        when(employeeRepository.findAllByUserIdIn(List.of(201L))).thenReturn(List.of());
+        when(userRepository.findAllById(List.of(201L))).thenReturn(List.of());
 
         assertThrows(ResourceNotFoundException.class,
                 () -> employeeService.createEmployeesBulk(employeeDtos));
-        verify(employeeSearchCache).invalidateAll();
+        verify(employeeSearchCache, never()).invalidateAll();
     }
 
     @Test
