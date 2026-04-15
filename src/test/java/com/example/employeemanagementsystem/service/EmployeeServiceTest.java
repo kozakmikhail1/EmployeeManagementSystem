@@ -10,8 +10,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -180,6 +183,100 @@ class EmployeeServiceTest {
 
         assertEquals(0, result.size());
         verify(employeeSearchCache, never()).invalidateAll();
+    }
+
+    @Test
+    void createEmployeesBulkWithoutTransactionWithNullInputReturnsEmptyList() {
+        List<EmployeeDto> result = employeeService.createEmployeesBulkWithoutTransaction(null);
+
+        assertEquals(0, result.size());
+        verify(employeeSearchCache, never()).invalidateAll();
+    }
+
+    @Test
+    void createEmployeesBulkWithoutTransactionSuccessInvalidatesCache() {
+        EmployeeCreateDto dto = new EmployeeCreateDto();
+        Employee entity = new Employee();
+        Employee savedEmployee = new Employee();
+        EmployeeDto out = new EmployeeDto();
+
+        when(employeeMapper.toEntity(dto)).thenReturn(entity);
+        when(employeeRepository.save(entity)).thenReturn(savedEmployee);
+        when(employeeMapper.toDto(savedEmployee)).thenReturn(out);
+
+        List<EmployeeDto> result = employeeService.createEmployeesBulkWithoutTransaction(List.of(dto));
+
+        assertEquals(1, result.size());
+        verify(employeeSearchCache).invalidateAll();
+    }
+
+    @Test
+    void createEmployeesBulkWithDuplicateUserIdsThrowsConflict() {
+        EmployeeCreateDto dto1 = new EmployeeCreateDto();
+        dto1.setUserId(55L);
+        EmployeeCreateDto dto2 = new EmployeeCreateDto();
+        dto2.setUserId(55L);
+
+        assertThrows(ResourceConflictException.class,
+                () -> employeeService.createEmployeesBulk(List.of(dto1, dto2)));
+
+        verify(employeeRepository, never()).saveAll(anyList());
+        verify(employeeSearchCache, never()).invalidateAll();
+    }
+
+    @Test
+    void createEmployeesBulkWithoutTransactionWithMissingUserThrowsNotFound() {
+        EmployeeCreateDto dto = new EmployeeCreateDto();
+        dto.setUserId(77L);
+        Employee entity = new Employee();
+
+        when(employeeMapper.toEntity(dto)).thenReturn(entity);
+        when(employeeRepository.existsByUserId(77L)).thenReturn(false);
+        when(userRepository.findById(77L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> employeeService.createEmployeesBulkWithoutTransaction(List.of(dto)));
+
+        verify(employeeSearchCache, never()).invalidateAll();
+    }
+
+    @Test
+    void createEmployeesBulkWithoutTransactionWithExistingUserSavesEmployee() {
+        EmployeeCreateDto dto = new EmployeeCreateDto();
+        dto.setUserId(78L);
+        Employee entity = new Employee();
+        Employee savedEmployee = new Employee();
+        EmployeeDto out = new EmployeeDto();
+        User user = new User();
+
+        when(employeeMapper.toEntity(dto)).thenReturn(entity);
+        when(employeeRepository.existsByUserId(78L)).thenReturn(false);
+        when(userRepository.findById(78L)).thenReturn(Optional.of(user));
+        when(employeeRepository.save(entity)).thenReturn(savedEmployee);
+        when(employeeMapper.toDto(savedEmployee)).thenReturn(out);
+
+        List<EmployeeDto> result = employeeService.createEmployeesBulkWithoutTransaction(List.of(dto));
+
+        assertEquals(1, result.size());
+        assertSame(user, entity.getUser());
+        verify(employeeSearchCache).invalidateAll();
+    }
+
+    @Test
+    void prepareEmployeeForCreateWithNonEmptyUsersMapAndMissingUserThrowsNotFound() {
+        EmployeeCreateDto dto = new EmployeeCreateDto();
+        dto.setUserId(99L);
+        Employee entity = new Employee();
+        User anotherUser = new User();
+        anotherUser.setId(100L);
+        Map<Long, User> usersById = Map.of(100L, anotherUser);
+
+        when(employeeMapper.toEntity(dto)).thenReturn(entity);
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> invokePrepareEmployeeForCreate(dto, usersById));
+        assertEquals("User not found with id 99", exception.getMessage());
     }
 
     @Test
@@ -726,5 +823,22 @@ class EmployeeServiceTest {
         Employee result = employeeService.getEmployeeByUserId(500L);
 
         assertSame(employee, result);
+    }
+
+    private Employee invokePrepareEmployeeForCreate(EmployeeCreateDto dto, Map<Long, User> usersById) {
+        try {
+            Method method = EmployeeService.class.getDeclaredMethod(
+                    "prepareEmployeeForCreate", EmployeeCreateDto.class, Map.class);
+            method.setAccessible(true);
+            return (Employee) method.invoke(employeeService, dto, usersById);
+        } catch (InvocationTargetException exception) {
+            Throwable cause = exception.getCause();
+            if (cause instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            throw new RuntimeException(cause);
+        } catch (ReflectiveOperationException exception) {
+            throw new RuntimeException(exception);
+        }
     }
 }

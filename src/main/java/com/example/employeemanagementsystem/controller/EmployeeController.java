@@ -138,6 +138,7 @@ public class EmployeeController {
     @Operation(summary = "Start async salary update in bulk")
     public ResponseEntity<AsyncTaskStartResponseDto> startAsyncBulkSalaryUpdate(
             @Valid @RequestBody List<@Valid AsyncSalaryUpdateItemDto> updates) {
+        // Сразу возвращаем taskId, а основная работа продолжается в фоне.
         String taskId = asyncSalaryUpdateService.startBulkSalaryUpdateTask(updates);
         return ResponseEntity.accepted().body(new AsyncTaskStartResponseDto(taskId));
     }
@@ -145,6 +146,7 @@ public class EmployeeController {
     @GetMapping("/tasks/{taskId}")
     @Operation(summary = "Get async task status")
     public ResponseEntity<AsyncTaskStatusDto> getAsyncTaskStatus(@PathVariable String taskId) {
+        // Endpoint для периодического опроса состояния задачи с клиента.
         return ResponseEntity.ok(asyncSalaryUpdateService.getTaskStatus(taskId));
     }
 

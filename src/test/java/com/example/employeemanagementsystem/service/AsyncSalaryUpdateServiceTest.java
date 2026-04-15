@@ -67,8 +67,36 @@ class AsyncSalaryUpdateServiceTest {
     }
 
     @Test
+    void startBulkSalaryUpdateTaskHandlesAsyncFailureWithCauseMessage() {
+        List<AsyncSalaryUpdateItemDto> updates = List.of(new AsyncSalaryUpdateItemDto());
+        RuntimeException exceptionWithCause = new RuntimeException("Wrapper", new IllegalStateException("Root"));
+        CompletableFuture<Integer> failedFuture = CompletableFuture.failedFuture(exceptionWithCause);
+
+        when(asyncSalaryUpdateExecutor.process(updates)).thenReturn(failedFuture);
+
+        String taskId = asyncSalaryUpdateService.startBulkSalaryUpdateTask(updates);
+        AsyncTaskStatusDto taskStatus = asyncSalaryUpdateService.getTaskStatus(taskId);
+
+        assertEquals(AsyncTaskStatus.FAILED, taskStatus.getStatus());
+        assertEquals("Root", taskStatus.getMessage());
+        verify(employeeSearchCache).invalidateAll();
+    }
+
+    @Test
     void getTaskStatusNotFoundThrows() {
         assertThrows(ResourceNotFoundException.class,
                 () -> asyncSalaryUpdateService.getTaskStatus("missing-task"));
+    }
+
+    @Test
+    void startBulkSalaryUpdateTaskWithNullUpdatesUsesZeroTotalItems() {
+        when(asyncSalaryUpdateExecutor.process(null)).thenReturn(CompletableFuture.completedFuture(0));
+
+        String taskId = asyncSalaryUpdateService.startBulkSalaryUpdateTask(null);
+        AsyncTaskStatusDto taskStatus = asyncSalaryUpdateService.getTaskStatus(taskId);
+
+        assertEquals(0, taskStatus.getTotalItems());
+        assertEquals(AsyncTaskStatus.COMPLETED, taskStatus.getStatus());
+        verify(employeeSearchCache).invalidateAll();
     }
 }

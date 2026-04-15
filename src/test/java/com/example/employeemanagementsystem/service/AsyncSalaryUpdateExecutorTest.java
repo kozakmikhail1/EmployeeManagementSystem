@@ -68,9 +68,10 @@ class AsyncSalaryUpdateExecutorTest {
         AsyncSalaryUpdateItemDto itemDto = new AsyncSalaryUpdateItemDto();
         itemDto.setEmployeeId(999L);
         itemDto.setSalary(BigDecimal.valueOf(1000));
+        List<AsyncSalaryUpdateItemDto> updates = List.of(itemDto);
         when(employeeRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,
-                () -> asyncSalaryUpdateExecutor.process(List.of(itemDto)));
+                () -> asyncSalaryUpdateExecutor.process(updates));
     }
 }

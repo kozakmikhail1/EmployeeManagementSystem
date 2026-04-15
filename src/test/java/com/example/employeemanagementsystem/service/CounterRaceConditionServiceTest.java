@@ -48,6 +48,20 @@ class CounterRaceConditionServiceTest {
         assertEquals(expected, counterService.getAtomicCounter());
     }
 
+    @Test
+    void resetAllResetsUnsafeSynchronizedAndAtomicCounters() {
+        CounterRaceConditionService counterService = new CounterRaceConditionService();
+        counterService.incrementUnsafe();
+        counterService.incrementSynchronized();
+        counterService.incrementAtomic();
+
+        counterService.resetAll();
+
+        assertEquals(0, counterService.getUnsafeCounter());
+        assertEquals(0, counterService.getSynchronizedCounter());
+        assertEquals(0, counterService.getAtomicCounter());
+    }
+
     private void runConcurrentIncrements(int threads, int incrementsPerThread, Runnable incrementAction)
             throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(threads);

@@ -20,7 +20,9 @@ public class AsyncSalaryUpdateService {
 
     private final AsyncSalaryUpdateExecutor asyncSalaryUpdateExecutor;
     private final EmployeeSearchCache employeeSearchCache;
+
     private final AtomicLong processedItemsCounter = new AtomicLong();
+
     private final ConcurrentMap<String, AsyncTaskInfo> tasks = new ConcurrentHashMap<>();
 
     @Autowired
@@ -33,14 +35,18 @@ public class AsyncSalaryUpdateService {
 
     public String startBulkSalaryUpdateTask(List<AsyncSalaryUpdateItemDto> updates) {
         String taskId = UUID.randomUUID().toString();
+
         int totalItems = updates == null ? 0 : updates.size();
         AsyncTaskInfo taskInfo = new AsyncTaskInfo(taskId, totalItems);
         tasks.put(taskId, taskInfo);
+
         taskInfo.setStatus(AsyncTaskStatus.RUNNING);
         taskInfo.setMessage("Task is running");
+
         asyncSalaryUpdateExecutor.process(updates).whenComplete((result, throwable) -> {
             if (throwable != null) {
                 taskInfo.setStatus(AsyncTaskStatus.FAILED);
+
                 taskInfo.setMessage(throwable.getCause() == null
                         ? throwable.getMessage()
                         : throwable.getCause().getMessage());
@@ -50,8 +56,10 @@ public class AsyncSalaryUpdateService {
                 taskInfo.setStatus(AsyncTaskStatus.COMPLETED);
                 taskInfo.setMessage("Task completed successfully");
             }
+
             employeeSearchCache.invalidateAll();
         });
+
         return taskId;
     }
 
@@ -69,8 +77,11 @@ public class AsyncSalaryUpdateService {
 
     private static final class AsyncTaskInfo {
         private final String taskId;
+
         private final int totalItems;
+
         private final AtomicInteger processedItems = new AtomicInteger();
+
         private volatile AsyncTaskStatus status;
         private volatile String message;
 
