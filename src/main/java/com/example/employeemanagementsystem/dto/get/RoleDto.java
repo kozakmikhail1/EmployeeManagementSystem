@@ -1,5 +1,7 @@
 package com.example.employeemanagementsystem.dto.get;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,4 +17,6 @@ public class RoleDto {
     private Long id;
 
     private String name;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

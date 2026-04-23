@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee Management System SPA</title>
+  <link rel="stylesheet" href="./spa.css" />
+  <script>
+    window.API_BASE_URL = window.API_BASE_URL || "";
+  </script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js" defer></script>
+  <script src="./spa.js" defer></script>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <header class="hero">
+      <h1>Employee Management System</h1>
+    </header>
+
+    <section class="status-line" :class="status.kind" v-if="status.message">
+      {{ status.message }}
+    </section>
+
+    <nav class="tabs">
+      <button
+        v-for="tab in tabs"
+        :key="tab.key"
+        :class="['tab', { active: currentTab === tab.key }]"
+        @click="currentTab = tab.key"
+      >
+        {{ tab.label }}
+      </button>
+    </nav>
+
+    <main class="content">
+      <section v-if="currentTab === 'employees'" class="panel">
+        <h2>Employees</h2>
+
+        <div class="grid two-col">
+          <div class="card">
+            <h3>Filters</h3>
+            <div class="form-grid">
+              <label>
+                Min salary
+                <input type="number" step="0.01" v-model="employeeFilter.minSalary" />
+              </label>
+              <label>
+                Max salary
+                <input type="number" step="0.01" v-model="employeeFilter.maxSalary" />
+              </label>
+              <label>
+                Global search
+                <input
+                  v-model="employeeGlobalSearch"
+                  @input="resetPage('employees')"
+                  placeholder="Name, email, department, position"
+                />
+              </label>
+              <label>
+                Sort by
+                <select v-model="listSettings.employees.sortBy" @change="onListSettingsChanged('employees')">
+                  <option v-for="item in employeeSortOptions" :key="item.value" :value="item.value">
+                    {{ item.label }}
+                  </option>
+                </select>
+              </label>
+              <label>
+                Direction
+                <select v-model="listSettings.employees.sortDir" @change="onListSettingsChanged('employees')">
+                  <option value="asc">Ascending</option>
+                  <option value="desc">Descending</option>
+                </select>
+              </label>
+              <label>
+                Page size
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  v-model.number="listSettings.employees.size"
+                  @change="onPageSizeChanged('employees')"
+                  @keyup.enter="onPageSizeChanged('employees')"
+                />
+              </label>
+              <button @click="loadEmployees">Apply</button>
+              <button class="ghost" @click="resetEmployeeSalaryFilter">Reset</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Advanced search</h3>
+            <div class="form-grid">
+              <label>
+                Department name
+                <input v-model="employeeSearch.departmentName" />
+              </label>
+              <label>
+                Role name
+                <select v-model="employeeSearch.roleName">
+                  <option value="">Any</option>
+                  <option v-for="role in roles" :key="role.id" :value="role.name">
+                    {{ role.name }}
+                  </option>
+                </select>
+              </label>
+              <label>
+                Active
+                <select v-model="employeeSearch.active">
+                  <option value="">Any</option>
+                  <option value="true">true</option>
+                  <option value="false">false</option>
+                </select>
+              </label>
+              <button @click="runNestedEmployeeSearch">Search</button>
+              <button class="ghost" @click="clearNestedEmployeeSearch">Reset</button>
+            </div>
+            <p class="hint" v-if="employeeSearchResult">Found: {{ employeeSearchResult.totalElements }}</p>
+          </div>
+        </div>
+
+        <div class="inline actions toolbar-actions">
+          <button @click="openEmployeeCreate">New employee</button>
+        </div>
+
+        <div class="card" v-if="employeeFormVisible">
+          <h3>{{ employeeForm.id ? 'Edit employee' : 'Create employee' }}</h3>
+          <form class="form-grid" @submit.prevent="submitEmployeeForm">
+            <label>
+              First name
+              <input required v-model="employeeForm.firstName" />
+            </label>
+            <label>
+              Last name
+              <input required v-model="employeeForm.lastName" />
+            </label>
+            <label>
+              Email
+              <input required type="email" v-model="employeeForm.email" />
+            </label>
+            <label>
+              Hire date
+              <input required type="date" v-model="employeeForm.hireDate" />
+            </label>
+            <label>
+              Salary
+              <input required type="number" step="0.01" min="0.01" v-model="employeeForm.salary" />
+            </label>
+            <label>
+              Active
+              <select v-model="employeeForm.isActive">
+                <option :value="true">true</option>
+                <option :value="false">false</option>
+              </select>
+            </label>
+            <label>
+              Department
+              <select required v-model="employeeForm.departmentId">
+                <option value="">Select</option>
+                <option v-for="department in departments" :key="department.id" :value="String(department.id)">
+                  {{ department.name }}
+                </option>
+              </select>
+            </label>
+            <label>
+              Position
+              <select required v-model="employeeForm.positionId">
+                <option value="">Select</option>
+                <option v-for="position in positions" :key="position.id" :value="String(position.id)">
+                  {{ position.name }}
+                </option>
+              </select>
+            </label>
+            <label>
+              User optional
+              <select v-model="employeeForm.userId">
+                <option value="">None</option>
+                <option v-for="user in users" :key="user.id" :value="String(user.id)">
+                  {{ user.username }}
+                </option>
+              </select>
+            </label>
+            <label v-if="!employeeForm.id">
+              Create user account
+              <select v-model="employeeUserAccount.enabled">
+                <option :value="false">No</option>
+                <option :value="true">Yes</option>
+              </select>
+            </label>
+            <label v-if="!employeeForm.id && employeeUserAccount.enabled">
+              Username
+              <input required v-model="employeeUserAccount.username" />
+            </label>
+            <label v-if="!employeeForm.id && employeeUserAccount.enabled">
+              Password
+              <input required type="password" v-model="employeeUserAccount.password" />
+            </label>
+            <label v-if="!employeeForm.id && employeeUserAccount.enabled">
+              Roles
+              <select multiple size="4" v-model="employeeUserAccount.rolesId">
+                <option v-for="role in roles" :key="role.id" :value="String(role.id)">
+                  {{ role.name }}
+                </option>
+              </select>
+            </label>
+            <div class="inline actions">
+              <button type="submit">{{ employeeForm.id ? 'Save' : 'Create' }}</button>
+              <button class="ghost" type="button" @click="resetEmployeeForm">Clear</button>
+              <button class="ghost" type="button" @click="employeeFormVisible = false">Close</button>
+            </div>
+            <p class="form-error" v-if="employeeFormError">{{ employeeFormError }}</p>
+          </form>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th class="email-col">Email</th>
+                <th class="salary-col">Salary</th>
+                <th class="active-col">Active</th>
+                <th>Department</th>
+                <th>Position</th>
+                <th>User</th>
+                <th class="actions-col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="employee in visibleEmployees" :key="employee.id">
+                <td>{{ employee.firstName }} {{ employee.lastName }}</td>
+                <td class="email-col">{{ employee.email }}</td>
+                <td class="salary-col">{{ employee.salary }}</td>
+                <td class="active-col">
+                  <span :class="employee.isActive ? 'active-yes' : 'active-no'">
+                    {{ employee.isActive ? '✓' : '✗' }}
+                  </span>
+                </td>
+                <td>{{ departmentNameById(employee.departmentId) }}</td>
+                <td>{{ positionNameById(employee.positionId) }}</td>
+                <td>{{ usernameById(employee.userId) }}</td>
+                <td class="inline actions-col">
+                  <button @click="editEmployee(employee)">Edit</button>
+                  <button class="danger" @click="deleteEmployee(employee.id)">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pager-line">
+          <button class="ghost" :disabled="employeeCurrentPage <= 1"
+            @click="changePage('employees', -1, employeeTotalPages)">Previous</button>
+          <span>Go to</span>
+          <input class="pager-input" type="number" min="1"
+            v-model.number="listSettings.employees.page"
+            @change="goToPage('employees', employeeTotalPages)"
+            @keyup.enter="goToPage('employees', employeeTotalPages)" />
+          <span>Page {{ employeeCurrentPage }} / {{ employeeTotalPages }}</span>
+          <button class="ghost" :disabled="employeeCurrentPage >= employeeTotalPages"
+            @click="changePage('employees', 1, employeeTotalPages)">Next</button>
+        </div>
+      </section>
+
+      <section v-if="currentTab === 'departments'" class="panel">
+        <h2>Departments</h2>
+
+        <div class="inline actions toolbar-actions">
+          <button @click="openDepartmentCreate">New department</button>
+        </div>
+
+        <div class="card" v-if="departmentFormVisible">
+          <h3>{{ departmentForm.id ? 'Edit department' : 'Create department' }}</h3>
+          <form class="form-grid" @submit.prevent="submitDepartmentForm">
+            <label>
+              Name
+              <input required v-model="departmentForm.name" />
+            </label>
+            <label>
+              Description
+              <input v-model="departmentForm.description" />
+            </label>
+            <div class="inline actions">
+              <button type="submit">{{ departmentForm.id ? 'Save' : 'Create' }}</button>
+              <button class="ghost" type="button" @click="resetDepartmentForm">Clear</button>
+              <button class="ghost" type="button" @click="departmentFormVisible = false">Close</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="table-tools">
+            <label>
+              Filter by name
+              <input v-model="departmentFilter" @input="resetPage('departments')" placeholder="For example, IT" />
+            </label>
+            <label>
+              Sort by
+              <select v-model="listSettings.departments.sortBy" @change="onListSettingsChanged('departments')">
+                <option v-for="item in departmentSortOptions" :key="item.value" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </select>
+            </label>
+            <label>
+              Direction
+              <select v-model="listSettings.departments.sortDir" @change="onListSettingsChanged('departments')">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </label>
+            <label>
+              Page size
+              <input
+                type="number"
+                min="1"
+                step="1"
+                v-model.number="listSettings.departments.size"
+                @change="onPageSizeChanged('departments')"
+                @keyup.enter="onPageSizeChanged('departments')"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th class="actions-col wide">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="department in filteredDepartments" :key="department.id">
+                <td>{{ department.name }}</td>
+                <td>{{ department.description }}</td>
+                <td class="inline actions-col wide">
+                  <button @click="editDepartment(department)">Edit</button>
+                  <button @click="loadDepartmentEmployees(department)">Employees</button>
+                  <button class="danger" @click="deleteDepartment(department.id)">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pager-line">
+          <button class="ghost" :disabled="departmentCurrentPage <= 1"
+            @click="changePage('departments', -1, departmentTotalPages)">Previous</button>
+          <span>Go to</span>
+          <input class="pager-input" type="number" min="1"
+            v-model.number="listSettings.departments.page"
+            @change="goToPage('departments', departmentTotalPages)"
+            @keyup.enter="goToPage('departments', departmentTotalPages)" />
+          <span>Page {{ departmentCurrentPage }} / {{ departmentTotalPages }}</span>
+          <button class="ghost" :disabled="departmentCurrentPage >= departmentTotalPages"
+            @click="changePage('departments', 1, departmentTotalPages)">Next</button>
+        </div>
+
+        <div class="card" v-if="selectedDepartmentEmployees">
+          <h3>Department employees: {{ selectedDepartmentEmployees.name }}</h3>
+          <ul>
+            <li v-for="item in selectedDepartmentEmployees.employees" :key="item.id">
+              {{ item.firstName }} {{ item.lastName }}
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section v-if="currentTab === 'positions'" class="panel">
+        <h2>Positions</h2>
+
+        <div class="inline actions toolbar-actions">
+          <button @click="openPositionCreate">New position</button>
+        </div>
+
+        <div class="card" v-if="positionFormVisible">
+          <h3>{{ positionForm.id ? 'Edit position' : 'Create position' }}</h3>
+          <form class="form-grid" @submit.prevent="submitPositionForm">
+            <label>
+              Name
+              <input required v-model="positionForm.name" />
+            </label>
+            <label>
+              Description
+              <input v-model="positionForm.description" />
+            </label>
+            <label>
+              Min salary
+              <input type="number" step="0.01" min="0" v-model="positionForm.minSalary" />
+            </label>
+            <label>
+              Max salary
+              <input type="number" step="0.01" min="0" v-model="positionForm.maxSalary" />
+            </label>
+            <div class="inline actions">
+              <button type="submit">{{ positionForm.id ? 'Save' : 'Create' }}</button>
+              <button class="ghost" type="button" @click="resetPositionForm">Clear</button>
+              <button class="ghost" type="button" @click="positionFormVisible = false">Close</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="table-tools">
+            <label>
+              Filter by name
+              <input v-model="positionFilter" @input="resetPage('positions')" placeholder="For example, Backend" />
+            </label>
+            <label>
+              Sort by
+              <select v-model="listSettings.positions.sortBy" @change="onListSettingsChanged('positions')">
+                <option v-for="item in positionSortOptions" :key="item.value" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </select>
+            </label>
+            <label>
+              Direction
+              <select v-model="listSettings.positions.sortDir" @change="onListSettingsChanged('positions')">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </label>
+            <label>
+              Page size
+              <input
+                type="number"
+                min="1"
+                step="1"
+                v-model.number="listSettings.positions.size"
+                @change="onPageSizeChanged('positions')"
+                @keyup.enter="onPageSizeChanged('positions')"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Min</th>
+                <th>Max</th>
+                <th class="actions-col wide">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="position in filteredPositions" :key="position.id">
+                <td>{{ position.name }}</td>
+                <td>{{ position.description }}</td>
+                <td>{{ position.minSalary }}</td>
+                <td>{{ position.maxSalary }}</td>
+                <td class="inline actions-col wide">
+                  <button @click="editPosition(position)">Edit</button>
+                  <button @click="loadPositionEmployees(position)">Employees</button>
+                  <button class="danger" @click="deletePosition(position.id)">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pager-line">
+          <button class="ghost" :disabled="positionCurrentPage <= 1"
+            @click="changePage('positions', -1, positionTotalPages)">Previous</button>
+          <span>Go to</span>
+          <input class="pager-input" type="number" min="1"
+            v-model.number="listSettings.positions.page"
+            @change="goToPage('positions', positionTotalPages)"
+            @keyup.enter="goToPage('positions', positionTotalPages)" />
+          <span>Page {{ positionCurrentPage }} / {{ positionTotalPages }}</span>
+          <button class="ghost" :disabled="positionCurrentPage >= positionTotalPages"
+            @click="changePage('positions', 1, positionTotalPages)">Next</button>
+        </div>
+
+        <div class="card" v-if="selectedPositionEmployees">
+          <h3>Position employees: {{ selectedPositionEmployees.name }}</h3>
+          <ul>
+            <li v-for="item in selectedPositionEmployees.employees" :key="item.id">
+              {{ item.firstName }} {{ item.lastName }}
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section v-if="currentTab === 'users'" class="panel">
+        <h2>Users</h2>
+
+        <div class="inline actions toolbar-actions">
+          <button @click="openUserCreate">New user</button>
+        </div>
+
+        <div class="card" v-if="userFormVisible">
+          <h3>{{ userForm.id ? 'Edit user' : 'Create user' }}</h3>
+          <form class="form-grid" @submit.prevent="submitUserForm">
+            <label>
+              Username
+              <input required v-model="userForm.username" />
+            </label>
+            <label>
+              Password {{ userForm.id ? 'optional' : '' }}
+              <input :required="!userForm.id" type="password" v-model="userForm.password" />
+            </label>
+            <label>
+              Roles
+              <select multiple size="4" v-model="userForm.rolesId">
+                <option v-for="role in roles" :key="role.id" :value="String(role.id)">{{ role.name }}</option>
+              </select>
+            </label>
+            <label>
+              Link employee optional
+              <select v-model="userForm.employeeId">
+                <option value="">None</option>
+                <option
+                  v-for="employee in linkableEmployeesForUser"
+                  :key="employee.id"
+                  :value="String(employee.id)"
+                >
+                  {{ employee.firstName }} {{ employee.lastName }}
+                </option>
+              </select>
+            </label>
+            <div class="inline actions">
+              <button type="submit">{{ userForm.id ? 'Save' : 'Create' }}</button>
+              <button class="ghost" type="button" @click="resetUserForm">Clear</button>
+              <button class="ghost" type="button" @click="userFormVisible = false">Close</button>
+            </div>
+          </form>
+          <p class="hint">
+            You can link a user to an employee profile here.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="table-tools">
+            <label>
+              Filter by username
+              <input v-model="userFilter" @input="resetPage('users')" placeholder="Enter username" />
+            </label>
+            <label>
+              Sort by
+              <select v-model="listSettings.users.sortBy" @change="onListSettingsChanged('users')">
+                <option v-for="item in userSortOptions" :key="item.value" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </select>
+            </label>
+            <label>
+              Direction
+              <select v-model="listSettings.users.sortDir" @change="onListSettingsChanged('users')">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </label>
+            <label>
+              Page size
+              <input
+                type="number"
+                min="1"
+                step="1"
+                v-model.number="listSettings.users.size"
+                @change="onPageSizeChanged('users')"
+                @keyup.enter="onPageSizeChanged('users')"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Employee</th>
+                <th>Roles</th>
+                <th class="actions-col wide">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in filteredUsers" :key="user.id">
+                <td>{{ user.username }}</td>
+                <td>{{ linkedEmployeeNameByUserId(user.id) }}</td>
+                <td>
+                  <span class="badge" v-for="role in user.roles || []" :key="role.id">{{ role.name }}</span>
+                </td>
+                <td class="inline actions-col wide">
+                  <button @click="editUser(user)">Edit</button>
+                  <button class="ghost" v-if="linkedEmployeeNameByUserId(user.id) !== '-'"
+                    @click="unlinkUserFromUser(user)">Unlink</button>
+                  <button class="danger" @click="deleteUser(user.id)">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pager-line">
+          <button class="ghost" :disabled="userCurrentPage <= 1"
+            @click="changePage('users', -1, userTotalPages)">Previous</button>
+          <span>Go to</span>
+          <input class="pager-input" type="number" min="1"
+            v-model.number="listSettings.users.page"
+            @change="goToPage('users', userTotalPages)"
+            @keyup.enter="goToPage('users', userTotalPages)" />
+          <span>Page {{ userCurrentPage }} / {{ userTotalPages }}</span>
+          <button class="ghost" :disabled="userCurrentPage >= userTotalPages"
+            @click="changePage('users', 1, userTotalPages)">Next</button>
+        </div>
+      </section>
+
+      <section v-if="currentTab === 'roles'" class="panel">
+        <h2>Roles</h2>
+
+        <div class="inline actions toolbar-actions">
+          <button @click="openRoleCreate">New role</button>
+        </div>
+
+        <div class="card" v-if="roleFormVisible">
+          <h3>{{ roleForm.id ? 'Edit role' : 'Create role' }}</h3>
+          <form class="form-grid" @submit.prevent="submitRoleForm">
+            <label>
+              Name
+              <input required v-model="roleForm.name" />
+            </label>
+            <div class="inline actions">
+              <button type="submit">{{ roleForm.id ? 'Save' : 'Create' }}</button>
+              <button class="ghost" type="button" @click="resetRoleForm">Clear</button>
+              <button class="ghost" type="button" @click="roleFormVisible = false">Close</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="table-tools">
+            <label>
+              Filter by name
+              <input v-model="roleFilter" @input="resetPage('roles')" placeholder="For example, ADMIN" />
+            </label>
+            <label>
+              Sort by
+              <select v-model="listSettings.roles.sortBy" @change="onListSettingsChanged('roles')">
+                <option v-for="item in roleSortOptions" :key="item.value" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </select>
+            </label>
+            <label>
+              Direction
+              <select v-model="listSettings.roles.sortDir" @change="onListSettingsChanged('roles')">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </label>
+            <label>
+              Page size
+              <input
+                type="number"
+                min="1"
+                step="1"
+                v-model.number="listSettings.roles.size"
+                @change="onPageSizeChanged('roles')"
+                @keyup.enter="onPageSizeChanged('roles')"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th class="actions-col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="role in filteredRoles" :key="role.id">
+                <td>{{ role.name }}</td>
+                <td class="inline actions-col">
+                  <button @click="editRole(role)">Edit</button>
+                  <button class="danger" @click="deleteRole(role.id)">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pager-line">
+          <button class="ghost" :disabled="roleCurrentPage <= 1"
+            @click="changePage('roles', -1, roleTotalPages)">Previous</button>
+          <span>Go to</span>
+          <input class="pager-input" type="number" min="1"
+            v-model.number="listSettings.roles.page"
+            @change="goToPage('roles', roleTotalPages)"
+            @keyup.enter="goToPage('roles', roleTotalPages)" />
+          <span>Page {{ roleCurrentPage }} / {{ roleTotalPages }}</span>
+          <button class="ghost" :disabled="roleCurrentPage >= roleTotalPages"
+            @click="changePage('roles', 1, roleTotalPages)">Next</button>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

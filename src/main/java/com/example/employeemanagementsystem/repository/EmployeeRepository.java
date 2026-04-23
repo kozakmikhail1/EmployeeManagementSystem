@@ -41,18 +41,18 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                             + "JOIN e.department d "
                             + "LEFT JOIN e.user u "
                             + "LEFT JOIN u.roles r "
-                            + "WHERE (:departmentName IS NULL "
-                            + "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) "
-                            + "AND (:roleName IS NULL OR LOWER(r.name) = LOWER(:roleName)) "
+                            + "WHERE (:departmentName = '' "
+                            + "OR LOWER(d.name) LIKE CONCAT('%', :departmentName, '%')) "
+                            + "AND (:roleName = '' OR LOWER(r.name) = :roleName) "
                             + "AND (:active IS NULL OR e.isActive = :active)",
             countQuery =
                     "SELECT COUNT(DISTINCT e.id) FROM Employee e "
                             + "JOIN e.department d "
                             + "LEFT JOIN e.user u "
                             + "LEFT JOIN u.roles r "
-                            + "WHERE (:departmentName IS NULL "
-                            + "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) "
-                            + "AND (:roleName IS NULL OR LOWER(r.name) = LOWER(:roleName)) "
+                            + "WHERE (:departmentName = '' "
+                            + "OR LOWER(d.name) LIKE CONCAT('%', :departmentName, '%')) "
+                            + "AND (:roleName = '' OR LOWER(r.name) = :roleName) "
                             + "AND (:active IS NULL OR e.isActive = :active)")
     Page<Employee> searchWithNestedFiltersJpql(
             @Param("departmentName") String departmentName,
@@ -60,31 +60,4 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             @Param("active") Boolean active,
             Pageable pageable);
 
-    @Query(
-            value =
-                    "SELECT DISTINCT e.* FROM employees e "
-                            + "JOIN departments d ON e.department_id = d.id "
-                            + "LEFT JOIN users u ON e.user_id = u.id "
-                            + "LEFT JOIN user_roles ur ON u.id = ur.user_id "
-                            + "LEFT JOIN roles r ON ur.role_id = r.id "
-                            + "WHERE (:departmentName IS NULL "
-                            + "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) "
-                            + "AND (:roleName IS NULL OR LOWER(r.name) = LOWER(:roleName)) "
-                            + "AND (:active IS NULL OR e.is_active = :active)",
-            countQuery =
-                    "SELECT COUNT(DISTINCT e.id) FROM employees e "
-                            + "JOIN departments d ON e.department_id = d.id "
-                            + "LEFT JOIN users u ON e.user_id = u.id "
-                            + "LEFT JOIN user_roles ur ON u.id = ur.user_id "
-                            + "LEFT JOIN roles r ON ur.role_id = r.id "
-                            + "WHERE (:departmentName IS NULL "
-                            + "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) "
-                            + "AND (:roleName IS NULL OR LOWER(r.name) = LOWER(:roleName)) "
-                            + "AND (:active IS NULL OR e.is_active = :active)",
-            nativeQuery = true)
-    Page<Employee> searchWithNestedFiltersNative(
-            @Param("departmentName") String departmentName,
-            @Param("roleName") String roleName,
-            @Param("active") Boolean active,
-            Pageable pageable);
 }

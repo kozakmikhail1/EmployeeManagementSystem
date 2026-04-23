@@ -2,6 +2,7 @@ package com.example.employeemanagementsystem.dto.get;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,6 +26,8 @@ public class EmployeeDto {
     private LocalDate hireDate;
     private BigDecimal salary;
     private Boolean isActive;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long departmentId;

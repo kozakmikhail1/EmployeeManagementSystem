@@ -3,10 +3,13 @@ package com.example.employeemanagementsystem.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.employeemanagementsystem.cache.CacheNames;
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
+import com.example.employeemanagementsystem.cache.InvalidateReadCaches;
 import com.example.employeemanagementsystem.dto.create.RoleCreateDto;
 import com.example.employeemanagementsystem.dto.get.RoleDto;
 import com.example.employeemanagementsystem.dto.patch.RolePatchDto;
@@ -36,6 +39,7 @@ public class RoleService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.ROLE_BY_ID, key = "#id")
     public RoleDto getRoleById(Long id) {
         return roleRepository.findById(id)
             .map(roleMapper::toDto)
@@ -44,6 +48,7 @@ public class RoleService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.ROLES_ALL)
     public List<RoleDto> getAllRoles() {
         return roleRepository.findAll().stream()
             .map(roleMapper::toDto)
@@ -51,6 +56,7 @@ public class RoleService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public RoleDto createRole(RoleCreateDto roleCreateDto) {
         Role role = roleMapper.toEntity(roleCreateDto);
         Role savedRole = roleRepository.save(role);
@@ -59,6 +65,7 @@ public class RoleService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public RoleDto updateRole(Long id, RoleCreateDto roleCreateDto) {
         Role role = roleRepository.findById(id)
             .orElseThrow(
@@ -70,6 +77,7 @@ public class RoleService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public RoleDto patchRole(Long id, RolePatchDto roleCreateDto) {
         Role role = roleRepository.findById(id)
             .orElseThrow(
@@ -81,6 +89,7 @@ public class RoleService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public void deleteRole(Long id) {
         roleRepository.findById(id)
             .orElseThrow(
@@ -90,6 +99,7 @@ public class RoleService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.ROLE_BY_NAME, key = "#roleName")
     public Role findRoleByName(String roleName) {
         return roleRepository.findByName(roleName)
             .orElseThrow(() ->

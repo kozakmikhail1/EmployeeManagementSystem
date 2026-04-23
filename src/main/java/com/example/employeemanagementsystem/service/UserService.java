@@ -5,11 +5,14 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.employeemanagementsystem.cache.CacheNames;
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
+import com.example.employeemanagementsystem.cache.InvalidateReadCaches;
 import com.example.employeemanagementsystem.dto.create.UserCreateDto;
 import com.example.employeemanagementsystem.dto.get.UserDto;
 import com.example.employeemanagementsystem.dto.patch.UserPatchDto;
@@ -53,6 +56,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.USER_BY_ID, key = "#id")
     public UserDto getUserById(Long id) {
         return userRepository.findById(id)
             .map(userMapper::toDto)
@@ -61,6 +65,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.USER_BY_USERNAME, key = "#username")
     public UserDto getUserByUsername(String username) {
         return userRepository.findByUsername(username)
             .map(userMapper::toDto)
@@ -70,11 +75,13 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.USERS_ALL)
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream().map(userMapper::toDto).toList();
     }
 
     @Transactional
+    @InvalidateReadCaches
     public UserDto createUser(UserCreateDto userCreateDto) {
         User user = userMapper.toEntity(userCreateDto);
 
@@ -101,6 +108,7 @@ public class UserService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public UserDto updateUser(Long id, UserCreateDto userCreateDto) {
         User user =
             userRepository.findById(id)
@@ -116,6 +124,7 @@ public class UserService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public UserDto patchUser(Long id, UserPatchDto userCreateDto) {
         User user =
             userRepository.findById(id)
@@ -157,6 +166,7 @@ public class UserService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public void deleteUser(Long id) {
         userRepository.findById(id)
             .orElseThrow(

@@ -3,10 +3,13 @@ package com.example.employeemanagementsystem.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.employeemanagementsystem.cache.CacheNames;
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
+import com.example.employeemanagementsystem.cache.InvalidateReadCaches;
 import com.example.employeemanagementsystem.dto.create.DepartmentCreateDto;
 import com.example.employeemanagementsystem.dto.get.DepartmentDto;
 import com.example.employeemanagementsystem.dto.patch.DepartmentPatchDto;
@@ -37,6 +40,7 @@ public class DepartmentService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id")
     public DepartmentDto getDepartmentById(Long id) {
         return departmentRepository
                 .findById(id)
@@ -46,6 +50,7 @@ public class DepartmentService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.DEPARTMENTS_ALL)
     public List<DepartmentDto> getAllDepartments() {
         return departmentRepository.findAll().stream()
                 .map(departmentMapper::toDto)
@@ -53,6 +58,7 @@ public class DepartmentService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public DepartmentDto createDepartment(DepartmentCreateDto departmentDto) {
         Department department = departmentMapper.toEntity(departmentDto);
         Department savedDepartment = departmentRepository.save(department);
@@ -61,6 +67,7 @@ public class DepartmentService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public DepartmentDto updateDepartment(Long id, DepartmentCreateDto departmentDto) {
         Department department = departmentRepository
                 .findById(id)
@@ -73,6 +80,7 @@ public class DepartmentService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public DepartmentDto patchDepartment(Long id, DepartmentPatchDto departmentDto) {
         Department department = departmentRepository
                 .findById(id)
@@ -85,6 +93,7 @@ public class DepartmentService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public void deleteDepartment(Long id) {
         Department department = departmentRepository.findWithEmployeesById(id)
                 .orElseThrow(

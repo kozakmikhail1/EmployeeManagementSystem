@@ -7,8 +7,7 @@ import org.springframework.data.domain.Pageable;
 public final class EmployeeSearchCacheKey {
 
     public enum QueryType {
-        JPQL,
-        NATIVE
+        JPQL
     }
 
     private final QueryType queryType;

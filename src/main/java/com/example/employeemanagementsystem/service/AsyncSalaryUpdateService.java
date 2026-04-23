@@ -8,8 +8,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
+import com.example.employeemanagementsystem.cache.CacheNames;
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.dto.create.AsyncSalaryUpdateItemDto;
 import com.example.employeemanagementsystem.dto.get.AsyncTaskStatusDto;
@@ -20,6 +23,7 @@ public class AsyncSalaryUpdateService {
 
     private final AsyncSalaryUpdateExecutor asyncSalaryUpdateExecutor;
     private final EmployeeSearchCache employeeSearchCache;
+    private CacheManager cacheManager;
 
     private final AtomicLong processedItemsCounter = new AtomicLong();
 
@@ -31,6 +35,11 @@ public class AsyncSalaryUpdateService {
             EmployeeSearchCache employeeSearchCache) {
         this.asyncSalaryUpdateExecutor = asyncSalaryUpdateExecutor;
         this.employeeSearchCache = employeeSearchCache;
+    }
+
+    @Autowired(required = false)
+    public void setCacheManager(CacheManager cacheManager) {
+        this.cacheManager = cacheManager;
     }
 
     public String startBulkSalaryUpdateTask(List<AsyncSalaryUpdateItemDto> updates) {
@@ -58,6 +67,7 @@ public class AsyncSalaryUpdateService {
             }
 
             employeeSearchCache.invalidateAll();
+            invalidateReadCaches();
         });
 
         return taskId;
@@ -73,6 +83,18 @@ public class AsyncSalaryUpdateService {
 
     public long getProcessedItemsCounter() {
         return processedItemsCounter.get();
+    }
+
+    private void invalidateReadCaches() {
+        if (cacheManager == null) {
+            return;
+        }
+        for (String cacheName : CacheNames.ALL_READ_CACHES) {
+            Cache cache = cacheManager.getCache(cacheName);
+            if (cache != null) {
+                cache.clear();
+            }
+        }
     }
 
     private static final class AsyncTaskInfo {

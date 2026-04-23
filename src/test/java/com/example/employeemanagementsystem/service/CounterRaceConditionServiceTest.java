@@ -1,7 +1,6 @@
 package com.example.employeemanagementsystem.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -13,53 +12,25 @@ import org.junit.jupiter.api.Test;
 class CounterRaceConditionServiceTest {
 
     @Test
-    void unsafeCounterShowsRaceConditionWith50PlusThreads() throws InterruptedException {
-        CounterRaceConditionService counterService = new CounterRaceConditionService();
-        int threads = 64;
-        int incrementsPerThread = 2000;
-        int expected = threads * incrementsPerThread;
-
-        runConcurrentIncrements(threads, incrementsPerThread, counterService::incrementUnsafe);
-
-        assertTrue(counterService.getUnsafeCounter() < expected);
-    }
-
-    @Test
-    void synchronizedCounterAvoidsRaceConditionWith50PlusThreads() throws InterruptedException {
-        CounterRaceConditionService counterService = new CounterRaceConditionService();
-        int threads = 64;
-        int incrementsPerThread = 2000;
-        int expected = threads * incrementsPerThread;
-
-        runConcurrentIncrements(threads, incrementsPerThread, counterService::incrementSynchronized);
-
-        assertEquals(expected, counterService.getSynchronizedCounter());
-    }
-
-    @Test
     void atomicCounterAvoidsRaceConditionWith50PlusThreads() throws InterruptedException {
         CounterRaceConditionService counterService = new CounterRaceConditionService();
         int threads = 64;
         int incrementsPerThread = 2000;
         int expected = threads * incrementsPerThread;
 
-        runConcurrentIncrements(threads, incrementsPerThread, counterService::incrementAtomic);
+        runConcurrentIncrements(threads, incrementsPerThread, counterService::increment);
 
-        assertEquals(expected, counterService.getAtomicCounter());
+        assertEquals(expected, counterService.getValue());
     }
 
     @Test
-    void resetAllResetsUnsafeSynchronizedAndAtomicCounters() {
+    void resetResetsAtomicCounter() {
         CounterRaceConditionService counterService = new CounterRaceConditionService();
-        counterService.incrementUnsafe();
-        counterService.incrementSynchronized();
-        counterService.incrementAtomic();
+        counterService.increment();
 
-        counterService.resetAll();
+        counterService.reset();
 
-        assertEquals(0, counterService.getUnsafeCounter());
-        assertEquals(0, counterService.getSynchronizedCounter());
-        assertEquals(0, counterService.getAtomicCounter());
+        assertEquals(0, counterService.getValue());
     }
 
     private void runConcurrentIncrements(int threads, int incrementsPerThread, Runnable incrementAction)

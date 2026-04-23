@@ -1,6 +1,7 @@
 package com.example.employeemanagementsystem.dto.get;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
@@ -20,4 +21,6 @@ public class PositionDto {
     private String description;
     private BigDecimal minSalary;
     private BigDecimal maxSalary;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

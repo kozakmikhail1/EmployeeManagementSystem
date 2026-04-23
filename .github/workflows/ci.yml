@@ -1,13 +1,14 @@
-name: CI
+name: CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,23 +21,17 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          cache: maven
 
-      - name: Cache Maven local repository
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-m2-
-
-      - name: Build (Maven)
-        run: mvn -B -V -DskipTests=false verify
+      - name: Build and test
+        run: ./mvnw -B -V verify
 
       - name: SonarCloud analysis
+        if: ${{ secrets.SONAR_TOKEN != '' }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
+          ./mvnw -B org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=kozakmikhail1 \
@@ -44,3 +39,58 @@ jobs:
             -Dsonar.inclusions='src/main/java/com/example/employeemanagementsystem/service/**/*.java' \
             -Dsonar.coverage.inclusions='src/main/java/com/example/employeemanagementsystem/service/**/*.java' \
             -Dsonar.coverage.jacoco.xmlReportPaths='target/site/jacoco/jacoco.xml'
+
+  docker-build:
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: docker build -t employee-management-system:ci .
+
+  deploy:
+    needs: docker-build
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL secret is not set"
+            exit 1
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+  healthcheck:
+    needs: deploy
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for deployment health
+        env:
+          APP_HEALTHCHECK_URL: ${{ secrets.APP_HEALTHCHECK_URL }}
+        run: |
+          if [ -z "$APP_HEALTHCHECK_URL" ]; then
+            echo "APP_HEALTHCHECK_URL secret is not set"
+            exit 1
+          fi
+
+          for i in $(seq 1 30); do
+            body=$(curl -fsS "$APP_HEALTHCHECK_URL" || true)
+            if echo "$body" | grep -q '"status":"UP"'; then
+              echo "Healthcheck passed"
+              exit 0
+            fi
+            echo "Attempt $i/30 failed, retrying in 10s"
+            sleep 10
+          done
+
+          echo "Healthcheck failed"
+          exit 1

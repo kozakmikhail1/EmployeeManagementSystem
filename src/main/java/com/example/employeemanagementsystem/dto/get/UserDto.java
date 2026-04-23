@@ -1,6 +1,7 @@
 package com.example.employeemanagementsystem.dto.get;
 
 import java.util.Set;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -18,6 +19,8 @@ public class UserDto {
     private Long id;
 
     private String username;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private EmployeeDto employee;

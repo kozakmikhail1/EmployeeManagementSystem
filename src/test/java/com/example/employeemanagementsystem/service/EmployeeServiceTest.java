@@ -125,35 +125,6 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void createEmployeesBulkWithoutTransactionPartialSaveBeforeFailure() {
-        EmployeeCreateDto dto1 = new EmployeeCreateDto();
-        EmployeeCreateDto dto2 = new EmployeeCreateDto();
-        dto2.setUserId(10L);
-
-        Employee entity1 = new Employee();
-        Employee entity2 = new Employee();
-        Employee saved1 = new Employee();
-        saved1.setId(1L);
-
-        EmployeeDto out1 = new EmployeeDto();
-        out1.setId(1L);
-
-        when(employeeMapper.toEntity(dto1)).thenReturn(entity1);
-        when(employeeMapper.toEntity(dto2)).thenReturn(entity2);
-        when(employeeRepository.save(entity1)).thenReturn(saved1);
-        when(employeeMapper.toDto(saved1)).thenReturn(out1);
-        when(employeeRepository.existsByUserId(10L)).thenReturn(true);
-        List<EmployeeCreateDto> employees = List.of(dto1, dto2);
-
-        assertThrows(ResourceConflictException.class,
-                () -> employeeService.createEmployeesBulkWithoutTransaction(employees));
-
-        verify(employeeRepository).save(entity1);
-        verify(employeeRepository, never()).save(entity2);
-        verify(employeeSearchCache).invalidateAll();
-    }
-
-    @Test
     void createEmployeesBulkWithEmptyInputReturnsEmptyList() {
         List<EmployeeDto> result = employeeService.createEmployeesBulk(List.of());
 
@@ -178,39 +149,6 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void createEmployeesBulkWithoutTransactionWithEmptyInputReturnsEmptyList() {
-        List<EmployeeDto> result = employeeService.createEmployeesBulkWithoutTransaction(List.of());
-
-        assertEquals(0, result.size());
-        verify(employeeSearchCache, never()).invalidateAll();
-    }
-
-    @Test
-    void createEmployeesBulkWithoutTransactionWithNullInputReturnsEmptyList() {
-        List<EmployeeDto> result = employeeService.createEmployeesBulkWithoutTransaction(null);
-
-        assertEquals(0, result.size());
-        verify(employeeSearchCache, never()).invalidateAll();
-    }
-
-    @Test
-    void createEmployeesBulkWithoutTransactionSuccessInvalidatesCache() {
-        EmployeeCreateDto dto = new EmployeeCreateDto();
-        Employee entity = new Employee();
-        Employee savedEmployee = new Employee();
-        EmployeeDto out = new EmployeeDto();
-
-        when(employeeMapper.toEntity(dto)).thenReturn(entity);
-        when(employeeRepository.save(entity)).thenReturn(savedEmployee);
-        when(employeeMapper.toDto(savedEmployee)).thenReturn(out);
-
-        List<EmployeeDto> result = employeeService.createEmployeesBulkWithoutTransaction(List.of(dto));
-
-        assertEquals(1, result.size());
-        verify(employeeSearchCache).invalidateAll();
-    }
-
-    @Test
     void createEmployeesBulkWithDuplicateUserIdsThrowsConflict() {
         EmployeeCreateDto dto1 = new EmployeeCreateDto();
         dto1.setUserId(55L);
@@ -222,44 +160,6 @@ class EmployeeServiceTest {
 
         verify(employeeRepository, never()).saveAll(anyList());
         verify(employeeSearchCache, never()).invalidateAll();
-    }
-
-    @Test
-    void createEmployeesBulkWithoutTransactionWithMissingUserThrowsNotFound() {
-        EmployeeCreateDto dto = new EmployeeCreateDto();
-        dto.setUserId(77L);
-        Employee entity = new Employee();
-
-        when(employeeMapper.toEntity(dto)).thenReturn(entity);
-        when(employeeRepository.existsByUserId(77L)).thenReturn(false);
-        when(userRepository.findById(77L)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class,
-                () -> employeeService.createEmployeesBulkWithoutTransaction(List.of(dto)));
-
-        verify(employeeSearchCache, never()).invalidateAll();
-    }
-
-    @Test
-    void createEmployeesBulkWithoutTransactionWithExistingUserSavesEmployee() {
-        EmployeeCreateDto dto = new EmployeeCreateDto();
-        dto.setUserId(78L);
-        Employee entity = new Employee();
-        Employee savedEmployee = new Employee();
-        EmployeeDto out = new EmployeeDto();
-        User user = new User();
-
-        when(employeeMapper.toEntity(dto)).thenReturn(entity);
-        when(employeeRepository.existsByUserId(78L)).thenReturn(false);
-        when(userRepository.findById(78L)).thenReturn(Optional.of(user));
-        when(employeeRepository.save(entity)).thenReturn(savedEmployee);
-        when(employeeMapper.toDto(savedEmployee)).thenReturn(out);
-
-        List<EmployeeDto> result = employeeService.createEmployeesBulkWithoutTransaction(List.of(dto));
-
-        assertEquals(1, result.size());
-        assertSame(user, entity.getUser());
-        verify(employeeSearchCache).invalidateAll();
     }
 
     @Test
@@ -699,38 +599,6 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void searchEmployeesWithNestedFilterNativeCacheMissReadsRepositoryAndCachesResult() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Employee employee = new Employee();
-        Page<Employee> page = new PageImpl<>(List.of(employee));
-        EmployeeDto employeeDto = new EmployeeDto();
-
-        when(employeeSearchCache.get(any())).thenReturn(null);
-        when(employeeRepository.searchWithNestedFiltersNative("IT", "ADMIN", true, pageable))
-                .thenReturn(page);
-        when(employeeMapper.toDto(employee)).thenReturn(employeeDto);
-
-        Page<EmployeeDto> result =
-                employeeService.searchEmployeesWithNestedFilterNative("IT", "ADMIN", true, pageable);
-
-        assertEquals(1, result.getContent().size());
-        verify(employeeSearchCache).put(any(), any());
-    }
-
-    @Test
-    void searchEmployeesWithNestedFilterNativeReturnsCachedPage() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<EmployeeDto> cached = new PageImpl<>(List.of(new EmployeeDto()));
-        when(employeeSearchCache.get(any())).thenReturn(cached);
-
-        Page<EmployeeDto> result =
-                employeeService.searchEmployeesWithNestedFilterNative("IT", "ADMIN", true, pageable);
-
-        assertEquals(1, result.getContent().size());
-        verify(employeeRepository, never()).searchWithNestedFiltersNative(any(), any(), any(), any());
-    }
-
-    @Test
     void searchEmployeesWithNestedFilterJpqlCacheMissReadsRepositoryAndCachesResult() {
         Pageable pageable = PageRequest.of(0, 10);
         Employee employee = new Employee();
@@ -738,7 +606,7 @@ class EmployeeServiceTest {
         Page<Employee> page = new PageImpl<>(List.of(employee));
 
         when(employeeSearchCache.get(any())).thenReturn(null);
-        when(employeeRepository.searchWithNestedFiltersJpql("IT", "USER", true, pageable))
+        when(employeeRepository.searchWithNestedFiltersJpql("it", "user", true, pageable))
                 .thenReturn(page);
         when(employeeMapper.toDto(employee)).thenReturn(employeeDto);
 

@@ -61,6 +61,23 @@
 - 🎭 CRUD-операции для ролей
 - 🔑 Назначение ролей пользователям
 
+### 🖥️ SPA-клиент
+- ✅ Реализован SPA-клиент (Vue 3) в `src/main/resources/static`
+- 🔌 Клиент работает напрямую с REST API (`/api/*`)
+- 🔁 Отображены связи:
+  - `OneToMany`: сотрудники отдела и должности
+  - `ManyToMany`: роли пользователей
+- 🧩 Реализованы CRUD-операции для:
+  - Employees
+  - Departments
+  - Positions
+  - Users
+  - Roles
+- 🔎 Реализована фильтрация:
+  - Сотрудники по диапазону зарплат
+  - Глубокий поиск сотрудников (`departmentName`, `roleName`, `active`)
+  - Локальные фильтры по имени/username для справочников
+
 ---
 
 ## 👑 Ролевая модель
@@ -110,6 +127,20 @@
 
 ---
 
+## ▶️ Запуск SPA
+
+1. Запустите Spring Boot приложение:
+```bash
+./mvnw spring-boot:run
+```
+
+2. Откройте в браузере:
+- `http://localhost:8081/`
+
+Клиент отдается тем же сервером и использует те же API-эндпоинты (`/api/*`), поэтому дополнительная настройка CORS не требуется.
+
+---
+
 <div align="center">
   
 **Разработано с ❤️ для эффективного управления персоналом**
@@ -117,3 +148,89 @@
 [Вернуться к началу](#-система-управления-персоналом)
 
 </div>
+
+## 🐳 Docker
+
+### Сборка образа
+
+```bash
+docker build -t employee-management-system:latest .
+```
+
+### Запуск контейнера приложения
+
+```bash
+docker run --rm -p 8081:8081 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/employee_db \
+  -e SPRING_DATASOURCE_USERNAME=postgres \
+  -e SPRING_DATASOURCE_PASSWORD=postgres \
+  employee-management-system:latest
+```
+
+## 🧩 Docker Compose (приложение + PostgreSQL)
+
+1. Создайте файл окружения:
+
+```bash
+cp .env.example .env
+```
+
+2. Поднимите сервисы:
+
+```bash
+docker compose up -d --build
+```
+
+3. Проверка health endpoint:
+
+```bash
+curl http://localhost:8081/actuator/health
+```
+
+## 🌍 Переменные окружения
+
+Основные переменные:
+
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
+- `SPRING_JPA_HIBERNATE_DDL_AUTO`
+- `SERVER_PORT` или `PORT`
+- `APP_ASYNC_SALARY_UPDATE_PER_ITEM_DELAY_MS`
+
+## ☁️ Бесплатный PaaS (Render)
+
+### Что настроить в Render
+
+1. Создайте `PostgreSQL` (Free plan).
+2. Создайте `Web Service` из этого репозитория (Runtime: Docker).
+3. В `Environment` укажите:
+   - `SPRING_DATASOURCE_URL` = Internal Database URL
+   - `SPRING_DATASOURCE_USERNAME` = DB user
+   - `SPRING_DATASOURCE_PASSWORD` = DB password
+   - `SPRING_JPA_HIBERNATE_DDL_AUTO` = `update`
+4. Health Check Path:
+
+```text
+/actuator/health
+```
+
+## 🔁 CI/CD в GitHub Actions
+
+Workflow: `.github/workflows/ci.yml`
+
+Pipeline включает:
+
+- сборку (`mvn verify`)
+- тесты
+- сборку Docker образа
+- деплой (через Render Deploy Hook)
+- post-deploy healthcheck
+
+### GitHub Secrets
+
+Добавьте в репозиторий:
+
+- `RENDER_DEPLOY_HOOK_URL`
+- `APP_HEALTHCHECK_URL` (например `https://your-app.onrender.com/actuator/health`)
+- `SONAR_TOKEN` (опционально)

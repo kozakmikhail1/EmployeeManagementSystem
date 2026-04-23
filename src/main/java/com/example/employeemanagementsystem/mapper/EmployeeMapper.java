@@ -88,6 +88,8 @@ public class EmployeeMapper {
         dto.setHireDate(entity.getHireDate());
         dto.setSalary(entity.getSalary());
         dto.setIsActive(entity.getIsActive());
+        dto.setCreatedAt(entity.getCreatedAt());
+        dto.setUpdatedAt(entity.getUpdatedAt());
 
         if (entity.getDepartment() != null) {
             dto.setDepartmentId(entity.getDepartment().getId());

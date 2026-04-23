@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,11 +16,18 @@ import lombok.Setter;
 @Getter
 @Setter
 public class EmployeeCreateDto {
+    private static final String PERSON_NAME_PATTERN = "^[\\p{L}]+(?:[ '-][\\p{L}]+)*$";
 
     @NotBlank(message = "First name cannot be blank")
+    @Pattern(
+            regexp = PERSON_NAME_PATTERN,
+            message = "First name can contain only letters, spaces, apostrophes, and hyphens")
     private String firstName;
 
     @NotBlank(message = "Last name cannot be blank")
+    @Pattern(
+            regexp = PERSON_NAME_PATTERN,
+            message = "Last name can contain only letters, spaces, apostrophes, and hyphens")
     private String lastName;
 
     @NotBlank(message = "Email cannot be blank")

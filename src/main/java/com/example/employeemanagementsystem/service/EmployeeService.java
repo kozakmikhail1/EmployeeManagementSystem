@@ -12,14 +12,17 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.employeemanagementsystem.cache.CacheNames;
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.cache.EmployeeSearchCacheKey;
+import com.example.employeemanagementsystem.cache.InvalidateReadCaches;
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
 import com.example.employeemanagementsystem.dto.create.UserCreateDto;
 import com.example.employeemanagementsystem.dto.get.EmployeeDto;
@@ -72,6 +75,7 @@ public class EmployeeService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public EmployeeDto createEmployee(EmployeeCreateDto employeeDto) {
         Employee employee = employeeMapper.toEntity(employeeDto);
 
@@ -91,6 +95,7 @@ public class EmployeeService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public List<EmployeeDto> createEmployeesBulk(List<EmployeeCreateDto> employeeDtos) {
         List<Employee> employees = prepareEmployeesForBulk(employeeDtos);
         if (employees.isEmpty()) {
@@ -104,30 +109,8 @@ public class EmployeeService {
         return savedEmployees;
     }
 
-    public List<EmployeeDto> createEmployeesBulkWithoutTransaction(
-            List<EmployeeCreateDto> employeeDtos) {
-        if (employeeDtos == null || employeeDtos.isEmpty()) {
-            return List.of();
-        }
-
-        List<EmployeeDto> savedEmployees = new java.util.ArrayList<>();
-        try {
-            for (EmployeeCreateDto employeeDto : employeeDtos) {
-                Employee employee = prepareEmployeeForCreate(employeeDto, Collections.emptyMap());
-                Employee savedEmployee = employeeRepository.save(employee);
-                savedEmployees.add(employeeMapper.toDto(savedEmployee));
-            }
-            invalidateEmployeeSearchCache();
-            return savedEmployees;
-        } catch (RuntimeException exception) {
-            if (!savedEmployees.isEmpty()) {
-                invalidateEmployeeSearchCache();
-            }
-            throw exception;
-        }
-    }
-
     @Transactional
+    @InvalidateReadCaches
     public EmployeeDto createEmployeeWithUser(EmployeeCreateDto employeeDto, UserCreateDto userDto) {
         Employee employee = employeeMapper.toEntity(employeeDto);
         User user = userMapper.toEntity(userDto);
@@ -160,6 +143,7 @@ public class EmployeeService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public EmployeeDto updateEmployee(Long id, EmployeeCreateDto employeeDto) {
         Employee employee = employeeRepository
                 .findById(id)
@@ -187,6 +171,7 @@ public class EmployeeService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public EmployeeDto patchEmployee(Long id, EmployeePatchDto employeeDto) {
         Employee employee = employeeRepository
                 .findById(id)
@@ -205,12 +190,35 @@ public class EmployeeService {
         return employeeMapper.toDto(updatedEmployee);
     }
 
+    @Transactional
+    @InvalidateReadCaches
+    public EmployeeDto unlinkUserFromEmployee(Long id) {
+        Employee employee = employeeRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        EMPLOYEE_NOT_FOUND_MESS + id));
+
+        User linkedUser = employee.getUser();
+        if (linkedUser != null) {
+            employee.setUser(null);
+            if (linkedUser.getEmployee() != null
+                    && Objects.equals(linkedUser.getEmployee().getId(), employee.getId())) {
+                linkedUser.setEmployee(null);
+            }
+        }
+
+        Employee updatedEmployee = employeeRepository.save(employee);
+        invalidateEmployeeSearchCache();
+        return employeeMapper.toDto(updatedEmployee);
+    }
+
     @Transactional(readOnly = true)
     public Optional<Employee> getEmployeeById(Long id) {
         return employeeRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.EMPLOYEE_BY_ID, key = "#id")
     public EmployeeDto getEmployeeDtoById(Long id) {
         return employeeMapper.toDto(employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -218,11 +226,13 @@ public class EmployeeService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.EMPLOYEES_ALL)
     public List<EmployeeDto> getAllEmployees() {
         return employeeRepository.findAll().stream().map(employeeMapper::toDto).toList();
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.EMPLOYEES_BY_SALARY_RANGE)
     public List<EmployeeDto> getEmployeesBySalaryRange(BigDecimal minSalary, BigDecimal maxSalary) {
         if (minSalary == null && maxSalary == null) {
             return employeeMapper.toDto(employeeRepository.findAll());
@@ -236,12 +246,14 @@ public class EmployeeService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.EMPLOYEES_BY_DEPARTMENT, key = "#departmentId")
     public List<EmployeeDto> getEmployeesByDepartmentId(Long departmentId) {
         List<Employee> employees = employeeRepository.findByDepartmentId(departmentId);
         return employees.stream().map(employeeMapper::toDto).toList();
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.EMPLOYEES_BY_POSITION, key = "#positionId")
     public List<EmployeeDto> getEmployeesByPositionId(Long positionId) {
         List<Employee> employees = employeeRepository.findByPositionId(positionId);
         return employees.stream().map(employeeMapper::toDto).toList();
@@ -253,10 +265,12 @@ public class EmployeeService {
             String roleName,
             Boolean active,
             Pageable pageable) {
+        String normalizedDepartmentName = normalizeFilterValueForQuery(departmentName);
+        String normalizedRoleName = normalizeFilterValueForQuery(roleName);
         EmployeeSearchCacheKey cacheKey = EmployeeSearchCacheKey.from(
                 EmployeeSearchCacheKey.QueryType.JPQL,
-                departmentName,
-                roleName,
+                normalizedDepartmentName,
+                normalizedRoleName,
                 active,
                 pageable);
         Page<EmployeeDto> cachedPage = employeeSearchCache.get(cacheKey);
@@ -265,37 +279,14 @@ public class EmployeeService {
         }
 
         Page<EmployeeDto> page = employeeRepository.searchWithNestedFiltersJpql(
-                departmentName, roleName, active, pageable)
-            .map(employeeMapper::toDto);
-        employeeSearchCache.put(cacheKey, page);
-        return page;
-    }
-
-    @Transactional(readOnly = true)
-    public Page<EmployeeDto> searchEmployeesWithNestedFilterNative(
-            String departmentName,
-            String roleName,
-            Boolean active,
-            Pageable pageable) {
-        EmployeeSearchCacheKey cacheKey = EmployeeSearchCacheKey.from(
-                EmployeeSearchCacheKey.QueryType.NATIVE,
-                departmentName,
-                roleName,
-                active,
-                pageable);
-        Page<EmployeeDto> cachedPage = employeeSearchCache.get(cacheKey);
-        if (cachedPage != null) {
-            return cachedPage;
-        }
-
-        Page<EmployeeDto> page = employeeRepository.searchWithNestedFiltersNative(
-                departmentName, roleName, active, pageable)
+                normalizedDepartmentName, normalizedRoleName, active, pageable)
             .map(employeeMapper::toDto);
         employeeSearchCache.put(cacheKey, page);
         return page;
     }
 
     @Transactional
+    @InvalidateReadCaches
     public void deleteEmployee(Long id) {
         if (!employeeRepository.existsById(id)) {
             throw new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESS + id);
@@ -309,6 +300,7 @@ public class EmployeeService {
     }
 
     @Transactional
+    @InvalidateReadCaches
     public Employee updateEmployeeWithoutDto(Employee employee) {
         Employee savedEmployee = employeeRepository.save(employee);
         invalidateEmployeeSearchCache();
@@ -317,6 +309,17 @@ public class EmployeeService {
 
     private void invalidateEmployeeSearchCache() {
         employeeSearchCache.invalidateAll();
+    }
+
+    private String normalizeFilterValueForQuery(String value) {
+        if (value == null) {
+            return "";
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return "";
+        }
+        return trimmed.toLowerCase();
     }
 
     private List<Employee> prepareEmployeesForBulk(List<EmployeeCreateDto> employeeDtos) {

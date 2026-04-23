@@ -1,0 +1,28 @@
+databases:
+  - name: employee-management-db
+    plan: free
+
+services:
+  - type: web
+    name: employee-management-system
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: employee-management-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: employee-management-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: employee-management-db
+          property: password
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: APP_ASYNC_SALARY_UPDATE_PER_ITEM_DELAY_MS
+        value: "5000"

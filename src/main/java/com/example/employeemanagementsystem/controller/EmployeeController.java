@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.employeemanagementsystem.dto.create.AsyncSalaryUpdateItemDto;
 import com.example.employeemanagementsystem.dto.create.EmployeeCreateDto;
 import com.example.employeemanagementsystem.dto.create.EmployeeWithUserCreateDto;
-import com.example.employeemanagementsystem.dto.create.AsyncSalaryUpdateItemDto;
 import com.example.employeemanagementsystem.dto.get.AsyncTaskStartResponseDto;
 import com.example.employeemanagementsystem.dto.get.AsyncTaskStatusDto;
 import com.example.employeemanagementsystem.dto.get.CounterValueDto;
@@ -97,18 +97,6 @@ public class EmployeeController {
         return ResponseEntity.ok(employeePage);
     }
 
-    @GetMapping("/search/native")
-    @Operation(summary = "Search employees with nested filters (native SQL)")
-    public ResponseEntity<Page<EmployeeDto>> searchEmployeesWithNestedFilterNative(
-            @RequestParam(value = "departmentName", required = false) String departmentName,
-            @RequestParam(value = "roleName", required = false) String roleName,
-            @RequestParam(value = "active", required = false) Boolean active,
-            Pageable pageable) {
-        Page<EmployeeDto> employeePage = employeeService.searchEmployeesWithNestedFilterNative(
-                departmentName, roleName, active, pageable);
-        return ResponseEntity.ok(employeePage);
-    }
-
     @PostMapping
     @Operation(summary = "Create employee")
     public ResponseEntity<EmployeeDto> createEmployee(
@@ -125,20 +113,10 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployees);
     }
 
-    @PostMapping("/bulk-no-tx")
-    @Operation(summary = "Create employees in bulk (no transaction)")
-    public ResponseEntity<List<EmployeeDto>> createEmployeesBulkWithoutTransaction(
-            @Valid @RequestBody List<@Valid EmployeeCreateDto> employeeDtos) {
-        List<EmployeeDto> createdEmployees =
-                employeeService.createEmployeesBulkWithoutTransaction(employeeDtos);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployees);
-    }
-
     @PostMapping("/bulk-salary-async")
     @Operation(summary = "Start async salary update in bulk")
     public ResponseEntity<AsyncTaskStartResponseDto> startAsyncBulkSalaryUpdate(
             @Valid @RequestBody List<@Valid AsyncSalaryUpdateItemDto> updates) {
-        // Сразу возвращаем taskId, а основная работа продолжается в фоне.
         String taskId = asyncSalaryUpdateService.startBulkSalaryUpdateTask(updates);
         return ResponseEntity.accepted().body(new AsyncTaskStartResponseDto(taskId));
     }
@@ -146,7 +124,6 @@ public class EmployeeController {
     @GetMapping("/tasks/{taskId}")
     @Operation(summary = "Get async task status")
     public ResponseEntity<AsyncTaskStatusDto> getAsyncTaskStatus(@PathVariable String taskId) {
-        // Endpoint для периодического опроса состояния задачи с клиента.
         return ResponseEntity.ok(asyncSalaryUpdateService.getTaskStatus(taskId));
     }
 
@@ -181,6 +158,13 @@ public class EmployeeController {
     public ResponseEntity<EmployeeDto> patchEmployee(
             @PathVariable Long id, @Valid @RequestBody EmployeePatchDto employeeDto) {
         EmployeeDto updatedEmployee = employeeService.patchEmployee(id, employeeDto);
+        return ResponseEntity.ok(updatedEmployee);
+    }
+
+    @DeleteMapping("/{id}/user")
+    @Operation(summary = "Unlink user from employee")
+    public ResponseEntity<EmployeeDto> unlinkUserFromEmployee(@PathVariable Long id) {
+        EmployeeDto updatedEmployee = employeeService.unlinkUserFromEmployee(id);
         return ResponseEntity.ok(updatedEmployee);
     }
 
