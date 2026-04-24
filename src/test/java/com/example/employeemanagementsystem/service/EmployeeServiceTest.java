@@ -832,8 +832,9 @@ class EmployeeServiceTest {
 
     @Test
     void prepareEmployeeForCreateWithNullDtoThrowsIllegalArgumentException() {
+        Map<Long, User> usersById = Map.of();
         assertThrows(IllegalArgumentException.class,
-                () -> invokePrepareEmployeeForCreate(null, Map.of()));
+                () -> invokePrepareEmployeeForCreate(null, usersById));
     }
 
     @Test
@@ -842,9 +843,10 @@ class EmployeeServiceTest {
         dto.setUserId(320L);
         when(employeeMapper.toEntity(dto)).thenReturn(new Employee());
         when(employeeRepository.existsByUserId(320L)).thenReturn(true);
+        Map<Long, User> usersById = Map.of();
 
         assertThrows(ResourceConflictException.class,
-                () -> invokePrepareEmployeeForCreate(dto, Map.of()));
+                () -> invokePrepareEmployeeForCreate(dto, usersById));
     }
 
     @Test
@@ -854,9 +856,10 @@ class EmployeeServiceTest {
         when(employeeMapper.toEntity(dto)).thenReturn(new Employee());
         when(employeeRepository.existsByUserId(321L)).thenReturn(false);
         when(userRepository.findById(321L)).thenReturn(Optional.empty());
+        Map<Long, User> usersById = Map.of();
 
         assertThrows(ResourceNotFoundException.class,
-                () -> invokePrepareEmployeeForCreate(dto, Map.of()));
+                () -> invokePrepareEmployeeForCreate(dto, usersById));
     }
 
     @Test
