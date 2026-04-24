@@ -100,10 +100,11 @@ class AsyncSalaryUpdateExecutorTest {
         Employee employee = new Employee();
         employee.setId(3L);
         when(employeeRepository.findById(3L)).thenReturn(Optional.of(employee));
+        List<AsyncSalaryUpdateItemDto> updates = List.of(itemDto);
 
         Thread.currentThread().interrupt();
         assertThrows(IllegalStateException.class,
-                () -> asyncSalaryUpdateExecutor.process(List.of(itemDto)));
+                () -> asyncSalaryUpdateExecutor.process(updates));
         Thread.interrupted();
     }
 
