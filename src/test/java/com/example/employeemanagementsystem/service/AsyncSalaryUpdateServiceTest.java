@@ -2,6 +2,8 @@ package com.example.employeemanagementsystem.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.dto.create.AsyncSalaryUpdateItemDto;
@@ -28,6 +32,12 @@ class AsyncSalaryUpdateServiceTest {
 
     @Mock
     private EmployeeSearchCache employeeSearchCache;
+
+    @Mock
+    private CacheManager cacheManager;
+
+    @Mock
+    private Cache cache;
 
     @InjectMocks
     private AsyncSalaryUpdateService asyncSalaryUpdateService;
@@ -98,5 +108,34 @@ class AsyncSalaryUpdateServiceTest {
         assertEquals(0, taskStatus.getTotalItems());
         assertEquals(AsyncTaskStatus.COMPLETED, taskStatus.getStatus());
         verify(employeeSearchCache).invalidateAll();
+    }
+
+    @Test
+    void startBulkSalaryUpdateTaskClearsCachesWhenCacheManagerIsConfigured() {
+        List<AsyncSalaryUpdateItemDto> updates = List.of(new AsyncSalaryUpdateItemDto());
+        when(asyncSalaryUpdateExecutor.process(updates)).thenReturn(CompletableFuture.completedFuture(1));
+        when(cacheManager.getCache(anyString())).thenReturn(cache);
+        asyncSalaryUpdateService.setCacheManager(cacheManager);
+
+        String taskId = asyncSalaryUpdateService.startBulkSalaryUpdateTask(updates);
+
+        assertEquals(AsyncTaskStatus.COMPLETED,
+                asyncSalaryUpdateService.getTaskStatus(taskId).getStatus());
+        verify(cacheManager, atLeastOnce()).getCache(anyString());
+        verify(cache, atLeastOnce()).clear();
+    }
+
+    @Test
+    void startBulkSalaryUpdateTaskSkipsNullCachesFromCacheManager() {
+        List<AsyncSalaryUpdateItemDto> updates = List.of(new AsyncSalaryUpdateItemDto());
+        when(asyncSalaryUpdateExecutor.process(updates)).thenReturn(CompletableFuture.completedFuture(1));
+        when(cacheManager.getCache(anyString())).thenReturn(null);
+        asyncSalaryUpdateService.setCacheManager(cacheManager);
+
+        String taskId = asyncSalaryUpdateService.startBulkSalaryUpdateTask(updates);
+
+        assertEquals(AsyncTaskStatus.COMPLETED,
+                asyncSalaryUpdateService.getTaskStatus(taskId).getStatus());
+        verify(cacheManager, atLeastOnce()).getCache(anyString());
     }
 }

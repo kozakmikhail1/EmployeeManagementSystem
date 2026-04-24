@@ -1,6 +1,7 @@
 package com.example.employeemanagementsystem.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -154,9 +155,10 @@ class EmployeeServiceTest {
         dto1.setUserId(55L);
         EmployeeCreateDto dto2 = new EmployeeCreateDto();
         dto2.setUserId(55L);
+        List<EmployeeCreateDto> payload = List.of(dto1, dto2);
 
         assertThrows(ResourceConflictException.class,
-                () -> employeeService.createEmployeesBulk(List.of(dto1, dto2)));
+                () -> employeeService.createEmployeesBulk(payload));
 
         verify(employeeRepository, never()).saveAll(anyList());
         verify(employeeSearchCache, never()).invalidateAll();
@@ -618,6 +620,141 @@ class EmployeeServiceTest {
     }
 
     @Test
+    void searchEmployeesWithAllFiltersJpqlNormalizesAndMaps() {
+        Pageable pageable = PageRequest.of(1, 5);
+        Employee employee = new Employee();
+        EmployeeDto employeeDto = new EmployeeDto();
+        Page<Employee> page = new PageImpl<>(List.of(employee));
+
+        when(employeeRepository.searchWithAllFiltersJpql(
+                "alice",
+                "",
+                "manager",
+                true,
+                BigDecimal.valueOf(1000),
+                BigDecimal.valueOf(5000),
+                pageable)).thenReturn(page);
+        when(employeeMapper.toDto(employee)).thenReturn(employeeDto);
+
+        Page<EmployeeDto> result = employeeService.searchEmployeesWithAllFiltersJpql(
+                "  ALICE ",
+                "   ",
+                " MANAGER ",
+                true,
+                BigDecimal.valueOf(1000),
+                BigDecimal.valueOf(5000),
+                pageable);
+
+        assertEquals(1, result.getContent().size());
+    }
+
+    @Test
+    void searchEmployeesWithAllFiltersJpqlWithNullFiltersUsesEmptyValues() {
+        Pageable pageable = PageRequest.of(0, 5);
+        when(employeeRepository.searchWithAllFiltersJpql(
+                "",
+                "",
+                "",
+                null,
+                null,
+                null,
+                pageable)).thenReturn(Page.empty(pageable));
+
+        Page<EmployeeDto> result = employeeService.searchEmployeesWithAllFiltersJpql(
+                null, null, null, null, null, null, pageable);
+
+        assertEquals(0, result.getTotalElements());
+    }
+
+    @Test
+    void unlinkUserFromEmployeeNotFoundThrows() {
+        when(employeeRepository.findById(901L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> employeeService.unlinkUserFromEmployee(901L));
+    }
+
+    @Test
+    void unlinkUserFromEmployeeUnlinksBothSidesWhenBackReferenceMatches() {
+        Employee employee = new Employee();
+        employee.setId(902L);
+        User linkedUser = new User();
+        Employee backReference = new Employee();
+        backReference.setId(902L);
+        linkedUser.setEmployee(backReference);
+        employee.setUser(linkedUser);
+        EmployeeDto employeeDto = new EmployeeDto();
+
+        when(employeeRepository.findById(902L)).thenReturn(Optional.of(employee));
+        when(employeeRepository.save(employee)).thenReturn(employee);
+        when(employeeMapper.toDto(employee)).thenReturn(employeeDto);
+
+        EmployeeDto result = employeeService.unlinkUserFromEmployee(902L);
+
+        assertSame(employeeDto, result);
+        assertNull(employee.getUser());
+        assertNull(linkedUser.getEmployee());
+        verify(employeeSearchCache).invalidateAll();
+    }
+
+    @Test
+    void unlinkUserFromEmployeeKeepsBackReferenceWhenDifferentEmployee() {
+        Employee employee = new Employee();
+        employee.setId(903L);
+        User linkedUser = new User();
+        Employee backReference = new Employee();
+        backReference.setId(904L);
+        linkedUser.setEmployee(backReference);
+        employee.setUser(linkedUser);
+        EmployeeDto employeeDto = new EmployeeDto();
+
+        when(employeeRepository.findById(903L)).thenReturn(Optional.of(employee));
+        when(employeeRepository.save(employee)).thenReturn(employee);
+        when(employeeMapper.toDto(employee)).thenReturn(employeeDto);
+
+        employeeService.unlinkUserFromEmployee(903L);
+
+        assertNull(employee.getUser());
+        assertSame(backReference, linkedUser.getEmployee());
+    }
+
+    @Test
+    void unlinkUserFromEmployeeWithNullBackReferenceKeepsNullAndSaves() {
+        Employee employee = new Employee();
+        employee.setId(906L);
+        User linkedUser = new User();
+        linkedUser.setEmployee(null);
+        employee.setUser(linkedUser);
+        EmployeeDto employeeDto = new EmployeeDto();
+
+        when(employeeRepository.findById(906L)).thenReturn(Optional.of(employee));
+        when(employeeRepository.save(employee)).thenReturn(employee);
+        when(employeeMapper.toDto(employee)).thenReturn(employeeDto);
+
+        EmployeeDto result = employeeService.unlinkUserFromEmployee(906L);
+
+        assertSame(employeeDto, result);
+        assertNull(employee.getUser());
+        assertNull(linkedUser.getEmployee());
+    }
+
+    @Test
+    void unlinkUserFromEmployeeWithNoLinkedUserStillSavesEmployee() {
+        Employee employee = new Employee();
+        employee.setId(905L);
+        employee.setUser(null);
+        EmployeeDto employeeDto = new EmployeeDto();
+        when(employeeRepository.findById(905L)).thenReturn(Optional.of(employee));
+        when(employeeRepository.save(employee)).thenReturn(employee);
+        when(employeeMapper.toDto(employee)).thenReturn(employeeDto);
+
+        EmployeeDto result = employeeService.unlinkUserFromEmployee(905L);
+
+        assertSame(employeeDto, result);
+        verify(employeeRepository).save(employee);
+    }
+
+    @Test
     void createEmployeesBulkWithUserPresentAndFoundSavesEmployee() {
         EmployeeCreateDto dto = new EmployeeCreateDto();
         dto.setUserId(200L);
@@ -691,6 +828,52 @@ class EmployeeServiceTest {
         Employee result = employeeService.getEmployeeByUserId(500L);
 
         assertSame(employee, result);
+    }
+
+    @Test
+    void prepareEmployeeForCreateWithNullDtoThrowsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class,
+                () -> invokePrepareEmployeeForCreate(null, Map.of()));
+    }
+
+    @Test
+    void prepareEmployeeForCreateWithEmptyUsersMapAndAlreadyAssignedUserThrowsConflict() {
+        EmployeeCreateDto dto = new EmployeeCreateDto();
+        dto.setUserId(320L);
+        when(employeeMapper.toEntity(dto)).thenReturn(new Employee());
+        when(employeeRepository.existsByUserId(320L)).thenReturn(true);
+
+        assertThrows(ResourceConflictException.class,
+                () -> invokePrepareEmployeeForCreate(dto, Map.of()));
+    }
+
+    @Test
+    void prepareEmployeeForCreateWithEmptyUsersMapAndMissingUserThrowsNotFound() {
+        EmployeeCreateDto dto = new EmployeeCreateDto();
+        dto.setUserId(321L);
+        when(employeeMapper.toEntity(dto)).thenReturn(new Employee());
+        when(employeeRepository.existsByUserId(321L)).thenReturn(false);
+        when(userRepository.findById(321L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> invokePrepareEmployeeForCreate(dto, Map.of()));
+    }
+
+    @Test
+    void prepareEmployeeForCreateWithEmptyUsersMapAndExistingUserSetsUser() {
+        EmployeeCreateDto dto = new EmployeeCreateDto();
+        dto.setUserId(322L);
+        Employee employee = new Employee();
+        User user = new User();
+        user.setId(322L);
+        when(employeeMapper.toEntity(dto)).thenReturn(employee);
+        when(employeeRepository.existsByUserId(322L)).thenReturn(false);
+        when(userRepository.findById(322L)).thenReturn(Optional.of(user));
+
+        Employee result = invokePrepareEmployeeForCreate(dto, Map.of());
+
+        assertSame(employee, result);
+        assertSame(user, result.getUser());
     }
 
     private Employee invokePrepareEmployeeForCreate(EmployeeCreateDto dto, Map<Long, User> usersById) {

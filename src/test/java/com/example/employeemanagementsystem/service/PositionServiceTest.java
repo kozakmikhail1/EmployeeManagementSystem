@@ -14,6 +14,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.dto.create.PositionCreateDto;
@@ -98,6 +102,42 @@ class PositionServiceTest {
 
         assertEquals(1, result.size());
         verify(positionMapper).toDto(position);
+    }
+
+    @Test
+    void getPositionsPageWithNullFilterUsesEmptyQuery() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Position position = new Position();
+        PositionDto positionDto = new PositionDto();
+        Page<Position> page = new PageImpl<>(List.of(position));
+        when(positionRepository.searchPage("", pageable)).thenReturn(page);
+        when(positionMapper.toDto(position)).thenReturn(positionDto);
+
+        Page<PositionDto> result = positionService.getPositionsPage(null, pageable);
+
+        assertEquals(1, result.getContent().size());
+        verify(positionRepository).searchPage("", pageable);
+    }
+
+    @Test
+    void getPositionsPageWithBlankFilterUsesEmptyQuery() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(positionRepository.searchPage("", pageable)).thenReturn(Page.empty(pageable));
+
+        Page<PositionDto> result = positionService.getPositionsPage("   ", pageable);
+
+        assertEquals(0, result.getContent().size());
+        verify(positionRepository).searchPage("", pageable);
+    }
+
+    @Test
+    void getPositionsPageNormalizesFilterToLowerCase() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(positionRepository.searchPage("developer", pageable)).thenReturn(Page.empty(pageable));
+
+        positionService.getPositionsPage("  DEVELOPER ", pageable);
+
+        verify(positionRepository).searchPage("developer", pageable);
     }
 
     @Test

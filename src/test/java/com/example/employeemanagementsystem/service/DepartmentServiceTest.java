@@ -12,6 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.dto.create.DepartmentCreateDto;
@@ -73,6 +77,42 @@ class DepartmentServiceTest {
 
         org.junit.jupiter.api.Assertions.assertEquals(1, result.size());
         verify(departmentMapper).toDto(department);
+    }
+
+    @Test
+    void getDepartmentsPageWithNullFilterUsesEmptyQuery() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Department department = new Department();
+        DepartmentDto departmentDto = new DepartmentDto();
+        Page<Department> page = new PageImpl<>(List.of(department));
+        when(departmentRepository.searchPage("", pageable)).thenReturn(page);
+        when(departmentMapper.toDto(department)).thenReturn(departmentDto);
+
+        Page<DepartmentDto> result = departmentService.getDepartmentsPage(null, pageable);
+
+        org.junit.jupiter.api.Assertions.assertEquals(1, result.getContent().size());
+        verify(departmentRepository).searchPage("", pageable);
+    }
+
+    @Test
+    void getDepartmentsPageWithBlankFilterUsesEmptyQuery() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(departmentRepository.searchPage("", pageable)).thenReturn(Page.empty(pageable));
+
+        Page<DepartmentDto> result = departmentService.getDepartmentsPage("   ", pageable);
+
+        org.junit.jupiter.api.Assertions.assertEquals(0, result.getContent().size());
+        verify(departmentRepository).searchPage("", pageable);
+    }
+
+    @Test
+    void getDepartmentsPageNormalizesFilterToLowerCase() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(departmentRepository.searchPage("finance", pageable)).thenReturn(Page.empty(pageable));
+
+        departmentService.getDepartmentsPage("  FINANCE ", pageable);
+
+        verify(departmentRepository).searchPage("finance", pageable);
     }
 
     @Test

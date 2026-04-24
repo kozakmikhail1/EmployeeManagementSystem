@@ -13,6 +13,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
 import com.example.employeemanagementsystem.dto.create.RoleCreateDto;
@@ -92,6 +96,42 @@ class RoleServiceTest {
 
         assertEquals(1, result.size());
         verify(roleMapper).toDto(role);
+    }
+
+    @Test
+    void getRolesPageWithNullFilterUsesEmptyQuery() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Role role = new Role();
+        RoleDto roleDto = new RoleDto();
+        Page<Role> page = new PageImpl<>(List.of(role));
+        when(roleRepository.searchPage("", pageable)).thenReturn(page);
+        when(roleMapper.toDto(role)).thenReturn(roleDto);
+
+        Page<RoleDto> result = roleService.getRolesPage(null, pageable);
+
+        assertEquals(1, result.getContent().size());
+        verify(roleRepository).searchPage("", pageable);
+    }
+
+    @Test
+    void getRolesPageWithBlankFilterUsesEmptyQuery() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(roleRepository.searchPage("", pageable)).thenReturn(Page.empty(pageable));
+
+        Page<RoleDto> result = roleService.getRolesPage("   ", pageable);
+
+        assertEquals(0, result.getContent().size());
+        verify(roleRepository).searchPage("", pageable);
+    }
+
+    @Test
+    void getRolesPageNormalizesFilterToLowerCase() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(roleRepository.searchPage("admin", pageable)).thenReturn(Page.empty(pageable));
+
+        roleService.getRolesPage("  ADMIN ", pageable);
+
+        verify(roleRepository).searchPage("admin", pageable);
     }
 
     @Test

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -73,5 +74,42 @@ class AsyncSalaryUpdateExecutorTest {
 
         assertThrows(ResourceNotFoundException.class,
                 () -> asyncSalaryUpdateExecutor.process(updates));
+    }
+
+    @Test
+    void processWithPositiveDelayCoversPauseBranch() throws Exception {
+        setPerItemDelayMs(1L);
+        AsyncSalaryUpdateItemDto itemDto = new AsyncSalaryUpdateItemDto();
+        itemDto.setEmployeeId(2L);
+        itemDto.setSalary(BigDecimal.valueOf(5000));
+        Employee employee = new Employee();
+        employee.setId(2L);
+        when(employeeRepository.findById(2L)).thenReturn(Optional.of(employee));
+
+        int result = asyncSalaryUpdateExecutor.process(List.of(itemDto)).get();
+
+        assertEquals(1, result);
+    }
+
+    @Test
+    void processInterruptedDuringPauseThrowsIllegalState() throws Exception {
+        setPerItemDelayMs(10L);
+        AsyncSalaryUpdateItemDto itemDto = new AsyncSalaryUpdateItemDto();
+        itemDto.setEmployeeId(3L);
+        itemDto.setSalary(BigDecimal.valueOf(6000));
+        Employee employee = new Employee();
+        employee.setId(3L);
+        when(employeeRepository.findById(3L)).thenReturn(Optional.of(employee));
+
+        Thread.currentThread().interrupt();
+        assertThrows(IllegalStateException.class,
+                () -> asyncSalaryUpdateExecutor.process(List.of(itemDto)));
+        Thread.interrupted();
+    }
+
+    private void setPerItemDelayMs(long value) throws Exception {
+        Field field = AsyncSalaryUpdateExecutor.class.getDeclaredField("perItemDelayMs");
+        field.setAccessible(true);
+        field.setLong(asyncSalaryUpdateExecutor, value);
     }
 }

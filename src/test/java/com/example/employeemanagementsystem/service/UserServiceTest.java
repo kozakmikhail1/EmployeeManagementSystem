@@ -17,6 +17,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.employeemanagementsystem.cache.EmployeeSearchCache;
@@ -160,6 +164,42 @@ class UserServiceTest {
 
         assertEquals(1, result.size());
         verify(userMapper).toDto(user);
+    }
+
+    @Test
+    void getUsersPageWithNullFilterUsesEmptyQuery() {
+        Pageable pageable = PageRequest.of(0, 10);
+        User user = new User();
+        UserDto userDto = new UserDto();
+        Page<User> page = new PageImpl<>(List.of(user));
+        when(userRepository.searchPage("", pageable)).thenReturn(page);
+        when(userMapper.toDto(user)).thenReturn(userDto);
+
+        Page<UserDto> result = userService.getUsersPage(null, pageable);
+
+        assertEquals(1, result.getContent().size());
+        verify(userRepository).searchPage("", pageable);
+    }
+
+    @Test
+    void getUsersPageWithBlankFilterUsesEmptyQuery() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(userRepository.searchPage("", pageable)).thenReturn(Page.empty(pageable));
+
+        Page<UserDto> result = userService.getUsersPage("   ", pageable);
+
+        assertEquals(0, result.getContent().size());
+        verify(userRepository).searchPage("", pageable);
+    }
+
+    @Test
+    void getUsersPageNormalizesFilterToLowerCase() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(userRepository.searchPage("john", pageable)).thenReturn(Page.empty(pageable));
+
+        userService.getUsersPage("  JOHN ", pageable);
+
+        verify(userRepository).searchPage("john", pageable);
     }
 
     @Test
