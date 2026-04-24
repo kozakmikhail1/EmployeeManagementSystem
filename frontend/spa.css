@@ -270,6 +270,11 @@ td.actions-col.wide {
   width: 300px;
 }
 
+td.actions-col,
+td.actions-col.wide {
+  vertical-align: middle;
+}
+
 td.inline button {
   flex: 0 0 auto;
 }
