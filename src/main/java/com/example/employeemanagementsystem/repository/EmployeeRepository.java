@@ -60,4 +60,54 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             @Param("active") Boolean active,
             Pageable pageable);
 
+    @Query(
+            value =
+                    "SELECT DISTINCT e FROM Employee e "
+                            + "JOIN e.department d "
+                            + "JOIN e.position p "
+                            + "LEFT JOIN e.user u "
+                            + "LEFT JOIN u.roles r "
+                            + "WHERE (:q = '' OR LOWER(CONCAT("
+                            + "COALESCE(e.firstName, ''), ' ', "
+                            + "COALESCE(e.lastName, ''), ' ', "
+                            + "COALESCE(e.email, ''), ' ', "
+                            + "COALESCE(d.name, ''), ' ', "
+                            + "COALESCE(p.name, ''), ' ', "
+                            + "COALESCE(u.username, '')"
+                            + ")) LIKE CONCAT('%', :q, '%')) "
+                            + "AND (:departmentName = '' "
+                            + "OR LOWER(d.name) LIKE CONCAT('%', :departmentName, '%')) "
+                            + "AND (:roleName = '' OR LOWER(r.name) = :roleName) "
+                            + "AND (:active IS NULL OR e.isActive = :active) "
+                            + "AND (:minSalary IS NULL OR e.salary >= :minSalary) "
+                            + "AND (:maxSalary IS NULL OR e.salary <= :maxSalary)",
+            countQuery =
+                    "SELECT COUNT(DISTINCT e.id) FROM Employee e "
+                            + "JOIN e.department d "
+                            + "JOIN e.position p "
+                            + "LEFT JOIN e.user u "
+                            + "LEFT JOIN u.roles r "
+                            + "WHERE (:q = '' OR LOWER(CONCAT("
+                            + "COALESCE(e.firstName, ''), ' ', "
+                            + "COALESCE(e.lastName, ''), ' ', "
+                            + "COALESCE(e.email, ''), ' ', "
+                            + "COALESCE(d.name, ''), ' ', "
+                            + "COALESCE(p.name, ''), ' ', "
+                            + "COALESCE(u.username, '')"
+                            + ")) LIKE CONCAT('%', :q, '%')) "
+                            + "AND (:departmentName = '' "
+                            + "OR LOWER(d.name) LIKE CONCAT('%', :departmentName, '%')) "
+                            + "AND (:roleName = '' OR LOWER(r.name) = :roleName) "
+                            + "AND (:active IS NULL OR e.isActive = :active) "
+                            + "AND (:minSalary IS NULL OR e.salary >= :minSalary) "
+                            + "AND (:maxSalary IS NULL OR e.salary <= :maxSalary)")
+    Page<Employee> searchWithAllFiltersJpql(
+            @Param("q") String q,
+            @Param("departmentName") String departmentName,
+            @Param("roleName") String roleName,
+            @Param("active") Boolean active,
+            @Param("minSalary") BigDecimal minSalary,
+            @Param("maxSalary") BigDecimal maxSalary,
+            Pageable pageable);
+
 }

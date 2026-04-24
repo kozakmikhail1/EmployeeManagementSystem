@@ -285,6 +285,29 @@ public class EmployeeService {
         return page;
     }
 
+    @Transactional(readOnly = true)
+    public Page<EmployeeDto> searchEmployeesWithAllFiltersJpql(
+            String q,
+            String departmentName,
+            String roleName,
+            Boolean active,
+            BigDecimal minSalary,
+            BigDecimal maxSalary,
+            Pageable pageable) {
+        String normalizedQuery = normalizeFilterValueForQuery(q);
+        String normalizedDepartmentName = normalizeFilterValueForQuery(departmentName);
+        String normalizedRoleName = normalizeFilterValueForQuery(roleName);
+
+        return employeeRepository.searchWithAllFiltersJpql(
+                normalizedQuery,
+                normalizedDepartmentName,
+                normalizedRoleName,
+                active,
+                minSalary,
+                maxSalary,
+                pageable).map(employeeMapper::toDto);
+    }
+
     @Transactional
     @InvalidateReadCaches
     public void deleteEmployee(Long id) {

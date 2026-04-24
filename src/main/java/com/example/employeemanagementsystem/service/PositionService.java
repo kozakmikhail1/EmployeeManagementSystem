@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +62,12 @@ public class PositionService {
             .toList(); 
     }
 
+    @Transactional(readOnly = true)
+    public Page<PositionDto> getPositionsPage(String q, Pageable pageable) {
+        String normalizedQuery = normalizeFilterValueForQuery(q);
+        return positionRepository.searchPage(normalizedQuery, pageable).map(positionMapper::toDto);
+    }
+
     @Transactional
     @InvalidateReadCaches
     public PositionDto createPosition(PositionCreateDto positionCreateDto) {
@@ -102,5 +110,16 @@ public class PositionService {
         }
         positionRepository.deleteById(id);
         employeeSearchCache.invalidateAll();
+    }
+
+    private String normalizeFilterValueForQuery(String value) {
+        if (value == null) {
+            return "";
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return "";
+        }
+        return trimmed.toLowerCase();
     }
 }

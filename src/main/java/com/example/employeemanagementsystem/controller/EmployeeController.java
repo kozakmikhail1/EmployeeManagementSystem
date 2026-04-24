@@ -97,6 +97,21 @@ public class EmployeeController {
         return ResponseEntity.ok(employeePage);
     }
 
+    @GetMapping("/page")
+    @Operation(summary = "Search employees with full filters, sorting and pagination")
+    public ResponseEntity<Page<EmployeeDto>> searchEmployeesWithAllFiltersJpql(
+            @RequestParam(value = "q", required = false) String q,
+            @RequestParam(value = "departmentName", required = false) String departmentName,
+            @RequestParam(value = "roleName", required = false) String roleName,
+            @RequestParam(value = "active", required = false) Boolean active,
+            @RequestParam(value = "min_salary", required = false) BigDecimal minSalary,
+            @RequestParam(value = "max_salary", required = false) BigDecimal maxSalary,
+            Pageable pageable) {
+        Page<EmployeeDto> employeePage = employeeService.searchEmployeesWithAllFiltersJpql(
+                q, departmentName, roleName, active, minSalary, maxSalary, pageable);
+        return ResponseEntity.ok(employeePage);
+    }
+
     @PostMapping
     @Operation(summary = "Create employee")
     public ResponseEntity<EmployeeDto> createEmployee(

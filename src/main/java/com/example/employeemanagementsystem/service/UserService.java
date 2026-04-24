@@ -6,6 +6,8 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,6 +80,12 @@ public class UserService {
     @Cacheable(cacheNames = CacheNames.USERS_ALL)
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream().map(userMapper::toDto).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserDto> getUsersPage(String q, Pageable pageable) {
+        String normalizedQuery = normalizeFilterValueForQuery(q);
+        return userRepository.searchPage(normalizedQuery, pageable).map(userMapper::toDto);
     }
 
     @Transactional
@@ -177,5 +185,16 @@ public class UserService {
         }
         userRepository.deleteById(id);
         employeeSearchCache.invalidateAll();
+    }
+
+    private String normalizeFilterValueForQuery(String value) {
+        if (value == null) {
+            return "";
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return "";
+        }
+        return trimmed.toLowerCase();
     }
 }

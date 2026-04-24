@@ -167,6 +167,25 @@
       const roles = ref([]);
 
       const employeeSearchResult = ref(null);
+      const employeeServerTotalPages = ref(1);
+      const employeeServerTotalItems = ref(0);
+      const employeeServerCurrentPage = ref(1);
+      const departmentRows = ref([]);
+      const departmentServerTotalPages = ref(1);
+      const departmentServerTotalItems = ref(0);
+      const departmentServerCurrentPage = ref(1);
+      const positionRows = ref([]);
+      const positionServerTotalPages = ref(1);
+      const positionServerTotalItems = ref(0);
+      const positionServerCurrentPage = ref(1);
+      const userRows = ref([]);
+      const userServerTotalPages = ref(1);
+      const userServerTotalItems = ref(0);
+      const userServerCurrentPage = ref(1);
+      const roleRows = ref([]);
+      const roleServerTotalPages = ref(1);
+      const roleServerTotalItems = ref(0);
+      const roleServerCurrentPage = ref(1);
 
       const selectedDepartmentEmployees = ref(null);
       const selectedPositionEmployees = ref(null);
@@ -332,9 +351,29 @@
         listSettings[tabKey].page = 1;
       }
 
+      function reloadTabData(tabKey, resetPageToFirst = false) {
+        if (tabKey === "employees") {
+          return loadEmployees(resetPageToFirst);
+        }
+        if (tabKey === "departments") {
+          return loadDepartments(resetPageToFirst);
+        }
+        if (tabKey === "positions") {
+          return loadPositions(resetPageToFirst);
+        }
+        if (tabKey === "users") {
+          return loadUsers(resetPageToFirst);
+        }
+        if (tabKey === "roles") {
+          return loadRoles(resetPageToFirst);
+        }
+        return Promise.resolve();
+      }
+
       function changePage(tabKey, direction, totalPages) {
         const settings = listSettings[tabKey];
         settings.page = Math.min(Math.max(settings.page + direction, 1), totalPages);
+        reloadTabData(tabKey, false);
       }
 
       function goToPage(tabKey, totalPages) {
@@ -342,13 +381,16 @@
         const rawPage = Number(settings.page);
         if (!Number.isFinite(rawPage)) {
           settings.page = 1;
+          reloadTabData(tabKey, false);
           return;
         }
         settings.page = Math.min(Math.max(Math.trunc(rawPage), 1), totalPages);
+        reloadTabData(tabKey, false);
       }
 
       function onListSettingsChanged(tabKey) {
         resetPage(tabKey);
+        reloadTabData(tabKey, false);
       }
 
       function onPageSizeChanged(tabKey) {
@@ -362,6 +404,11 @@
         }
 
         resetPage(tabKey);
+        reloadTabData(tabKey, false);
+      }
+
+      function onTabFilterChanged(tabKey) {
+        reloadTabData(tabKey, true);
       }
 
       async function loadReferenceData() {
@@ -382,47 +429,190 @@
         relationEmployees.value = await apiRequest("/api/employees");
       }
 
-      async function loadEmployees() {
+      function employeeSortProperty(sortBy) {
+        switch (sortBy) {
+          case "name":
+            return "lastName";
+          case "email":
+            return "email";
+          case "salary":
+            return "salary";
+          case "active":
+            return "isActive";
+          case "department":
+            return "department.name";
+          case "position":
+            return "position.name";
+          case "user":
+            return "user.username";
+          case "updatedAt":
+            return "updatedAt";
+          default:
+            return "lastName";
+        }
+      }
+
+      async function loadEmployees(resetPageToFirst = true, showSearchCompleted = false) {
         await runWithStatus(async () => {
-          employeeSearchResult.value = null;
-          const data = await apiRequest("/api/employees", { method: "GET" }, {
+          if (resetPageToFirst) {
+            resetPage("employees");
+          }
+
+          const settings = listSettings.employees;
+          const data = await apiRequest("/api/employees/page", { method: "GET" }, {
+            q: employeeGlobalSearch.value || undefined,
+            departmentName: employeeSearch.departmentName || undefined,
+            roleName: employeeSearch.roleName || undefined,
+            active: employeeSearch.active || undefined,
             min_salary: employeeFilter.minSalary || undefined,
-            max_salary: employeeFilter.maxSalary || undefined
+            max_salary: employeeFilter.maxSalary || undefined,
+            page: Math.max((Number(settings.page) || 1) - 1, 0),
+            size: Math.max(Number(settings.size) || 10, 1),
+            sort: employeeSortProperty(settings.sortBy) + "," + settings.sortDir
           });
-          employees.value = data;
-          resetPage("employees");
+
+          employees.value = data.content || [];
+          employeeServerTotalItems.value = Number(data.totalElements || 0);
+          employeeServerTotalPages.value = Math.max(Number(data.totalPages || 1), 1);
+          employeeServerCurrentPage.value = Math.max(Number(data.number || 0) + 1, 1);
+          settings.page = employeeServerCurrentPage.value;
+
+          const hasAdvancedSearch = normalizeText(employeeSearch.departmentName)
+            || normalizeText(employeeSearch.roleName)
+            || employeeSearch.active !== "";
+          if (hasAdvancedSearch || showSearchCompleted) {
+            employeeSearchResult.value = { totalElements: employeeServerTotalItems.value };
+          } else {
+            employeeSearchResult.value = null;
+          }
+        }, showSearchCompleted ? "Search completed" : undefined);
+      }
+
+      function departmentSortProperty(sortBy) {
+        if (sortBy === "description") {
+          return "description";
+        }
+        if (sortBy === "updatedAt") {
+          return "updatedAt";
+        }
+        return "name";
+      }
+
+      async function loadDepartments(resetPageToFirst = true) {
+        await runWithStatus(async () => {
+          if (resetPageToFirst) {
+            resetPage("departments");
+          }
+          const settings = listSettings.departments;
+          const data = await apiRequest("/api/departments/page", { method: "GET" }, {
+            q: departmentFilter.value || undefined,
+            page: Math.max((Number(settings.page) || 1) - 1, 0),
+            size: Math.max(Number(settings.size) || 10, 1),
+            sort: departmentSortProperty(settings.sortBy) + "," + settings.sortDir
+          });
+          departmentRows.value = data.content || [];
+          departmentServerTotalItems.value = Number(data.totalElements || 0);
+          departmentServerTotalPages.value = Math.max(Number(data.totalPages || 1), 1);
+          departmentServerCurrentPage.value = Math.max(Number(data.number || 0) + 1, 1);
+          settings.page = departmentServerCurrentPage.value;
+        });
+      }
+
+      function positionSortProperty(sortBy) {
+        if (sortBy === "minSalary") {
+          return "minSalary";
+        }
+        if (sortBy === "maxSalary") {
+          return "maxSalary";
+        }
+        if (sortBy === "updatedAt") {
+          return "updatedAt";
+        }
+        return "name";
+      }
+
+      async function loadPositions(resetPageToFirst = true) {
+        await runWithStatus(async () => {
+          if (resetPageToFirst) {
+            resetPage("positions");
+          }
+          const settings = listSettings.positions;
+          const data = await apiRequest("/api/positions/page", { method: "GET" }, {
+            q: positionFilter.value || undefined,
+            page: Math.max((Number(settings.page) || 1) - 1, 0),
+            size: Math.max(Number(settings.size) || 10, 1),
+            sort: positionSortProperty(settings.sortBy) + "," + settings.sortDir
+          });
+          positionRows.value = data.content || [];
+          positionServerTotalItems.value = Number(data.totalElements || 0);
+          positionServerTotalPages.value = Math.max(Number(data.totalPages || 1), 1);
+          positionServerCurrentPage.value = Math.max(Number(data.number || 0) + 1, 1);
+          settings.page = positionServerCurrentPage.value;
+        });
+      }
+
+      function userSortProperty(sortBy) {
+        if (sortBy === "updatedAt") {
+          return "updatedAt";
+        }
+        if (sortBy === "employee") {
+          return "employee.id";
+        }
+        if (sortBy === "rolesCount") {
+          return "id";
+        }
+        return "username";
+      }
+
+      async function loadUsers(resetPageToFirst = true) {
+        await runWithStatus(async () => {
+          if (resetPageToFirst) {
+            resetPage("users");
+          }
+          const settings = listSettings.users;
+          const data = await apiRequest("/api/users/page", { method: "GET" }, {
+            q: userFilter.value || undefined,
+            page: Math.max((Number(settings.page) || 1) - 1, 0),
+            size: Math.max(Number(settings.size) || 10, 1),
+            sort: userSortProperty(settings.sortBy) + "," + settings.sortDir
+          });
+          userRows.value = data.content || [];
+          userServerTotalItems.value = Number(data.totalElements || 0);
+          userServerTotalPages.value = Math.max(Number(data.totalPages || 1), 1);
+          userServerCurrentPage.value = Math.max(Number(data.number || 0) + 1, 1);
+          settings.page = userServerCurrentPage.value;
+        });
+      }
+
+      function roleSortProperty(sortBy) {
+        if (sortBy === "updatedAt") {
+          return "updatedAt";
+        }
+        return "name";
+      }
+
+      async function loadRoles(resetPageToFirst = true) {
+        await runWithStatus(async () => {
+          if (resetPageToFirst) {
+            resetPage("roles");
+          }
+          const settings = listSettings.roles;
+          const data = await apiRequest("/api/roles/page", { method: "GET" }, {
+            q: roleFilter.value || undefined,
+            page: Math.max((Number(settings.page) || 1) - 1, 0),
+            size: Math.max(Number(settings.size) || 10, 1),
+            sort: roleSortProperty(settings.sortBy) + "," + settings.sortDir
+          });
+          roleRows.value = data.content || [];
+          roleServerTotalItems.value = Number(data.totalElements || 0);
+          roleServerTotalPages.value = Math.max(Number(data.totalPages || 1), 1);
+          roleServerCurrentPage.value = Math.max(Number(data.number || 0) + 1, 1);
+          settings.page = roleServerCurrentPage.value;
         });
       }
 
       async function runNestedEmployeeSearch() {
-        await runWithStatus(async () => {
-          const allItems = [];
-          let page = 0;
-          const size = 200;
-          let totalElements = 0;
-
-          while (true) {
-            const data = await apiRequest("/api/employees/search/jpql", { method: "GET" }, {
-              departmentName: employeeSearch.departmentName || undefined,
-              roleName: employeeSearch.roleName || undefined,
-              active: employeeSearch.active || undefined,
-              page,
-              size
-            });
-
-            totalElements = Number(data.totalElements || 0);
-            allItems.push(...(data.content || []));
-
-            if (data.last || (data.content || []).length === 0) {
-              break;
-            }
-            page += 1;
-          }
-
-          employeeSearchResult.value = { totalElements };
-          employees.value = allItems;
-          resetPage("employees");
-        }, "Search completed");
+        await loadEmployees(true, true);
       }
 
       function clearNestedEmployeeSearch() {
@@ -430,13 +620,13 @@
         employeeSearch.roleName = "";
         employeeSearch.active = "";
         employeeSearchResult.value = null;
-        loadEmployees();
+        loadEmployees(true);
       }
 
       function resetEmployeeSalaryFilter() {
         employeeFilter.minSalary = "";
         employeeFilter.maxSalary = "";
-        loadEmployees();
+        loadEmployees(true);
       }
 
       function resetEmployeeForm() {
@@ -642,7 +832,12 @@
 
           resetDepartmentForm();
           departmentFormVisible.value = false;
-          await Promise.all([loadReferenceData(), loadEmployees(), refreshRelationEmployees()]);
+          await Promise.all([
+            loadReferenceData(),
+            loadEmployees(false),
+            loadDepartments(false),
+            refreshRelationEmployees()
+          ]);
         }, "Department saved");
       }
 
@@ -660,7 +855,12 @@
         await runWithStatus(async () => {
           await apiRequest("/api/departments/" + id, { method: "DELETE" });
           selectedDepartmentEmployees.value = null;
-          await Promise.all([loadReferenceData(), loadEmployees(), refreshRelationEmployees()]);
+          await Promise.all([
+            loadReferenceData(),
+            loadEmployees(false),
+            loadDepartments(false),
+            refreshRelationEmployees()
+          ]);
         }, "Department deleted");
       }
 
@@ -715,7 +915,12 @@
 
           resetPositionForm();
           positionFormVisible.value = false;
-          await Promise.all([loadReferenceData(), loadEmployees(), refreshRelationEmployees()]);
+          await Promise.all([
+            loadReferenceData(),
+            loadEmployees(false),
+            loadPositions(false),
+            refreshRelationEmployees()
+          ]);
         }, "Position saved");
       }
 
@@ -735,7 +940,12 @@
         await runWithStatus(async () => {
           await apiRequest("/api/positions/" + id, { method: "DELETE" });
           selectedPositionEmployees.value = null;
-          await Promise.all([loadReferenceData(), loadEmployees(), refreshRelationEmployees()]);
+          await Promise.all([
+            loadReferenceData(),
+            loadEmployees(false),
+            loadPositions(false),
+            refreshRelationEmployees()
+          ]);
         }, "Position deleted");
       }
 
@@ -770,7 +980,7 @@
           }
           resetRoleForm();
           roleFormVisible.value = false;
-          await loadReferenceData();
+          await Promise.all([loadReferenceData(), loadRoles(false)]);
         }, "Role saved");
       }
 
@@ -786,7 +996,7 @@
         }
         await runWithStatus(async () => {
           await apiRequest("/api/roles/" + id, { method: "DELETE" });
-          await loadReferenceData();
+          await Promise.all([loadReferenceData(), loadRoles(false)]);
         }, "Role deleted");
       }
 
@@ -857,7 +1067,12 @@
 
           resetUserForm();
           userFormVisible.value = false;
-          await Promise.all([loadReferenceData(), loadEmployees(), refreshRelationEmployees()]);
+          await Promise.all([
+            loadReferenceData(),
+            loadEmployees(false),
+            loadUsers(false),
+            refreshRelationEmployees()
+          ]);
         }, "User saved");
       }
 
@@ -878,7 +1093,12 @@
         }
         await runWithStatus(async () => {
           await apiRequest("/api/users/" + id, { method: "DELETE" });
-          await Promise.all([loadReferenceData(), loadEmployees(), refreshRelationEmployees()]);
+          await Promise.all([
+            loadReferenceData(),
+            loadEmployees(false),
+            loadUsers(false),
+            refreshRelationEmployees()
+          ]);
         }, "User deleted");
       }
 
@@ -931,207 +1151,29 @@
         return item.firstName + " " + item.lastName;
       }
 
-      const employeeFiltered = computed(() => {
-        const term = normalizeText(employeeGlobalSearch.value);
-        if (!term) {
-          return employees.value;
-        }
+      const visibleEmployees = computed(() => employees.value);
+      const employeeTotalPages = computed(() => employeeServerTotalPages.value);
+      const employeeCurrentPage = computed(() => employeeServerCurrentPage.value);
+      const employeeTotalItems = computed(() => employeeServerTotalItems.value);
+      const filteredDepartments = computed(() => departmentRows.value);
+      const departmentTotalPages = computed(() => departmentServerTotalPages.value);
+      const departmentCurrentPage = computed(() => departmentServerCurrentPage.value);
+      const departmentTotalItems = computed(() => departmentServerTotalItems.value);
 
-        return employees.value.filter((employee) => {
-          const haystack = [
-            employee.firstName,
-            employee.lastName,
-            employee.email,
-            departmentNameById(employee.departmentId),
-            positionNameById(employee.positionId),
-            usernameById(employee.userId)
-          ]
-            .join(" ")
-            .toLowerCase();
-          return haystack.includes(term);
-        });
-      });
+      const filteredPositions = computed(() => positionRows.value);
+      const positionTotalPages = computed(() => positionServerTotalPages.value);
+      const positionCurrentPage = computed(() => positionServerCurrentPage.value);
+      const positionTotalItems = computed(() => positionServerTotalItems.value);
 
-      function employeeValueBySort(employee, sortBy) {
-        switch (sortBy) {
-          case "email":
-            return employee.email;
-          case "salary":
-            return Number(employee.salary || 0);
-          case "active":
-            return !!employee.isActive;
-          case "department":
-            return departmentNameById(employee.departmentId);
-          case "position":
-            return positionNameById(employee.positionId);
-          case "user":
-            return usernameById(employee.userId);
-          case "updatedAt":
-            return employee.updatedAt || "";
-          case "name":
-          default:
-            return (employee.lastName || "") + " " + (employee.firstName || "");
-        }
-      }
+      const filteredUsers = computed(() => userRows.value);
+      const userTotalPages = computed(() => userServerTotalPages.value);
+      const userCurrentPage = computed(() => userServerCurrentPage.value);
+      const userTotalItems = computed(() => userServerTotalItems.value);
 
-      const employeeView = computed(() => {
-        const settings = listSettings.employees;
-        const sortedItems = sorted(
-          employeeFiltered.value,
-          settings.sortBy,
-          settings.sortDir,
-          employeeValueBySort
-        );
-        return paged(sortedItems, settings.page, settings.size);
-      });
-
-      const visibleEmployees = computed(() => employeeView.value.items);
-      const employeeTotalPages = computed(() => employeeView.value.totalPages);
-      const employeeCurrentPage = computed(() => employeeView.value.page);
-      const employeeTotalItems = computed(() => employeeView.value.totalItems);
-
-      const departmentsFilteredRaw = computed(() => {
-        const filter = normalizeText(departmentFilter.value);
-        if (!filter) {
-          return departments.value;
-        }
-        return departments.value.filter((department) =>
-          normalizeText(department.name).includes(filter)
-        );
-      });
-
-      function departmentValueBySort(department, sortBy) {
-        if (sortBy === "description") {
-          return department.description || "";
-        }
-        if (sortBy === "updatedAt") {
-          return department.updatedAt || "";
-        }
-        return department.name;
-      }
-
-      const departmentView = computed(() => {
-        const settings = listSettings.departments;
-        const sortedItems = sorted(
-          departmentsFilteredRaw.value,
-          settings.sortBy,
-          settings.sortDir,
-          departmentValueBySort
-        );
-        return paged(sortedItems, settings.page, settings.size);
-      });
-
-      const filteredDepartments = computed(() => departmentView.value.items);
-      const departmentTotalPages = computed(() => departmentView.value.totalPages);
-      const departmentCurrentPage = computed(() => departmentView.value.page);
-      const departmentTotalItems = computed(() => departmentView.value.totalItems);
-
-      const positionsFilteredRaw = computed(() => {
-        const filter = normalizeText(positionFilter.value);
-        if (!filter) {
-          return positions.value;
-        }
-        return positions.value.filter((position) =>
-          normalizeText(position.name).includes(filter)
-        );
-      });
-
-      function positionValueBySort(position, sortBy) {
-        if (sortBy === "minSalary") {
-          return Number(position.minSalary || 0);
-        }
-        if (sortBy === "maxSalary") {
-          return Number(position.maxSalary || 0);
-        }
-        if (sortBy === "updatedAt") {
-          return position.updatedAt || "";
-        }
-        return position.name;
-      }
-
-      const positionView = computed(() => {
-        const settings = listSettings.positions;
-        const sortedItems = sorted(
-          positionsFilteredRaw.value,
-          settings.sortBy,
-          settings.sortDir,
-          positionValueBySort
-        );
-        return paged(sortedItems, settings.page, settings.size);
-      });
-
-      const filteredPositions = computed(() => positionView.value.items);
-      const positionTotalPages = computed(() => positionView.value.totalPages);
-      const positionCurrentPage = computed(() => positionView.value.page);
-      const positionTotalItems = computed(() => positionView.value.totalItems);
-
-      const usersFilteredRaw = computed(() => {
-        const filter = normalizeText(userFilter.value);
-        if (!filter) {
-          return users.value;
-        }
-        return users.value.filter((user) => normalizeText(user.username).includes(filter));
-      });
-
-      function userValueBySort(user, sortBy) {
-        if (sortBy === "employee") {
-          return linkedEmployeeNameByUserId(user.id);
-        }
-        if (sortBy === "rolesCount") {
-          return (user.roles || []).length;
-        }
-        if (sortBy === "updatedAt") {
-          return user.updatedAt || "";
-        }
-        return user.username;
-      }
-
-      const userView = computed(() => {
-        const settings = listSettings.users;
-        const sortedItems = sorted(
-          usersFilteredRaw.value,
-          settings.sortBy,
-          settings.sortDir,
-          userValueBySort
-        );
-        return paged(sortedItems, settings.page, settings.size);
-      });
-
-      const filteredUsers = computed(() => userView.value.items);
-      const userTotalPages = computed(() => userView.value.totalPages);
-      const userCurrentPage = computed(() => userView.value.page);
-      const userTotalItems = computed(() => userView.value.totalItems);
-
-      const rolesFilteredRaw = computed(() => {
-        const filter = normalizeText(roleFilter.value);
-        if (!filter) {
-          return roles.value;
-        }
-        return roles.value.filter((role) => normalizeText(role.name).includes(filter));
-      });
-
-      function roleValueBySort(role, sortBy) {
-        if (sortBy === "updatedAt") {
-          return role.updatedAt || "";
-        }
-        return role.name;
-      }
-
-      const roleView = computed(() => {
-        const settings = listSettings.roles;
-        const sortedItems = sorted(
-          rolesFilteredRaw.value,
-          settings.sortBy,
-          settings.sortDir,
-          roleValueBySort
-        );
-        return paged(sortedItems, settings.page, settings.size);
-      });
-
-      const filteredRoles = computed(() => roleView.value.items);
-      const roleTotalPages = computed(() => roleView.value.totalPages);
-      const roleCurrentPage = computed(() => roleView.value.page);
-      const roleTotalItems = computed(() => roleView.value.totalItems);
+      const filteredRoles = computed(() => roleRows.value);
+      const roleTotalPages = computed(() => roleServerTotalPages.value);
+      const roleCurrentPage = computed(() => roleServerCurrentPage.value);
+      const roleTotalItems = computed(() => roleServerTotalItems.value);
 
       const linkableEmployeesForUser = computed(() => {
         if (!userForm.id) {
@@ -1151,7 +1193,15 @@
 
       async function init() {
         await runWithStatus(async () => {
-          await Promise.all([loadReferenceData(), loadEmployees(), refreshRelationEmployees()]);
+          await Promise.all([
+            loadReferenceData(),
+            loadEmployees(),
+            loadDepartments(),
+            loadPositions(),
+            loadUsers(),
+            loadRoles(),
+            refreshRelationEmployees()
+          ]);
         }, "Data loaded");
       }
 
@@ -1231,6 +1281,7 @@
         goToPage,
         onListSettingsChanged,
         onPageSizeChanged,
+        onTabFilterChanged,
 
         loadEmployees,
         openEmployeeCreate,

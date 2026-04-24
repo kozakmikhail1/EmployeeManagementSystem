@@ -52,7 +52,7 @@
                 Global search
                 <input
                   v-model="employeeGlobalSearch"
-                  @input="resetPage('employees')"
+                  @input="onTabFilterChanged('employees')"
                   placeholder="Name, email, department, position"
                 />
               </label>
@@ -290,7 +290,7 @@
           <div class="table-tools">
             <label>
               Filter by name
-              <input v-model="departmentFilter" @input="resetPage('departments')" placeholder="For example, IT" />
+              <input v-model="departmentFilter" @input="onTabFilterChanged('departments')" placeholder="For example, IT" />
             </label>
             <label>
               Sort by
@@ -404,7 +404,7 @@
           <div class="table-tools">
             <label>
               Filter by name
-              <input v-model="positionFilter" @input="resetPage('positions')" placeholder="For example, Backend" />
+              <input v-model="positionFilter" @input="onTabFilterChanged('positions')" placeholder="For example, Backend" />
             </label>
             <label>
               Sort by
@@ -536,7 +536,7 @@
           <div class="table-tools">
             <label>
               Filter by username
-              <input v-model="userFilter" @input="resetPage('users')" placeholder="Enter username" />
+              <input v-model="userFilter" @input="onTabFilterChanged('users')" placeholder="Enter username" />
             </label>
             <label>
               Sort by
@@ -634,7 +634,7 @@
           <div class="table-tools">
             <label>
               Filter by name
-              <input v-model="roleFilter" @input="resetPage('roles')" placeholder="For example, ADMIN" />
+              <input v-model="roleFilter" @input="onTabFilterChanged('roles')" placeholder="For example, ADMIN" />
             </label>
             <label>
               Sort by
