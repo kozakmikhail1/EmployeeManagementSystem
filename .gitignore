@@ -27,6 +27,7 @@ build/
 !**/src/test/**/build/
 
 .vscode/
+.env
 
 # Local load-testing binaries (keep only .jmx scenarios in repo)
 tools/jmeter/
