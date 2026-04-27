@@ -36,86 +36,75 @@
       <section v-if="currentTab === 'employees'" class="panel">
         <h2>Employees</h2>
 
-        <div class="grid two-col">
-          <div class="card">
-            <h3>Filters</h3>
-            <div class="form-grid">
-              <label>
-                Min salary
-                <input type="number" step="0.01" v-model="employeeFilter.minSalary" />
-              </label>
-              <label>
-                Max salary
-                <input type="number" step="0.01" v-model="employeeFilter.maxSalary" />
-              </label>
-              <label>
-                Global search
-                <input
-                  v-model="employeeGlobalSearch"
-                  @input="onTabFilterChanged('employees')"
-                  placeholder="Name, email, department, position"
-                />
-              </label>
-              <label>
-                Sort by
-                <select v-model="listSettings.employees.sortBy" @change="onListSettingsChanged('employees')">
-                  <option v-for="item in employeeSortOptions" :key="item.value" :value="item.value">
-                    {{ item.label }}
-                  </option>
-                </select>
-              </label>
-              <label>
-                Direction
-                <select v-model="listSettings.employees.sortDir" @change="onListSettingsChanged('employees')">
-                  <option value="asc">Ascending</option>
-                  <option value="desc">Descending</option>
-                </select>
-              </label>
-              <label>
-                Page size
-                <input
-                  type="number"
-                  min="1"
-                  step="1"
-                  v-model.number="listSettings.employees.size"
-                  @change="onPageSizeChanged('employees')"
-                  @keyup.enter="onPageSizeChanged('employees')"
-                />
-              </label>
-              <button @click="loadEmployees">Apply</button>
-              <button class="ghost" @click="resetEmployeeSalaryFilter">Reset</button>
-            </div>
+        <div class="card">
+          <h3>Search and filters</h3>
+          <div class="form-grid">
+            <label>
+              Global search
+              <input
+                v-model="employeeGlobalSearch"
+                placeholder="Name, email, department, position"
+              />
+            </label>
+            <label>
+              Department name
+              <input v-model="employeeSearch.departmentName" />
+            </label>
+            <label>
+              Role name
+              <select v-model="employeeSearch.roleName">
+                <option value="">Any</option>
+                <option v-for="role in roles" :key="role.id" :value="role.name">
+                  {{ role.name }}
+                </option>
+              </select>
+            </label>
+            <label>
+              Active
+              <select v-model="employeeSearch.active">
+                <option value="">Any</option>
+                <option value="true">true</option>
+                <option value="false">false</option>
+              </select>
+            </label>
+            <label>
+              Min salary
+              <input type="number" step="0.01" v-model="employeeFilter.minSalary" />
+            </label>
+            <label>
+              Max salary
+              <input type="number" step="0.01" v-model="employeeFilter.maxSalary" />
+            </label>
+            <label>
+              Sort by
+              <select v-model="listSettings.employees.sortBy" @change="onListSettingsChanged('employees')">
+                <option v-for="item in employeeSortOptions" :key="item.value" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </select>
+            </label>
+            <label>
+              Direction
+              <select v-model="listSettings.employees.sortDir" @change="onListSettingsChanged('employees')">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </label>
+            <label>
+              Page size
+              <input
+                type="number"
+                min="1"
+                step="1"
+                v-model.number="listSettings.employees.size"
+                @change="onPageSizeChanged('employees')"
+                @keyup.enter="onPageSizeChanged('employees')"
+              />
+            </label>
+            <button @click="applyEmployeeFiltersSearch">Apply</button>
+            <button class="ghost" @click="resetEmployeeFiltersSearch">Reset</button>
           </div>
-
-          <div class="card">
-            <h3>Advanced search</h3>
-            <div class="form-grid">
-              <label>
-                Department name
-                <input v-model="employeeSearch.departmentName" />
-              </label>
-              <label>
-                Role name
-                <select v-model="employeeSearch.roleName">
-                  <option value="">Any</option>
-                  <option v-for="role in roles" :key="role.id" :value="role.name">
-                    {{ role.name }}
-                  </option>
-                </select>
-              </label>
-              <label>
-                Active
-                <select v-model="employeeSearch.active">
-                  <option value="">Any</option>
-                  <option value="true">true</option>
-                  <option value="false">false</option>
-                </select>
-              </label>
-              <button @click="runNestedEmployeeSearch">Search</button>
-              <button class="ghost" @click="clearNestedEmployeeSearch">Reset</button>
-            </div>
-            <p class="hint" v-if="employeeSearchResult">Found: {{ employeeSearchResult.totalElements }}</p>
-          </div>
+          <p class="hint" v-if="employeeSearchResult">Found: {{ employeeSearchResult.totalElements }}</p>
         </div>
 
         <div class="inline actions toolbar-actions">
@@ -194,14 +183,15 @@
               Password
               <input required type="password" v-model="employeeUserAccount.password" />
             </label>
-            <label v-if="!employeeForm.id && employeeUserAccount.enabled">
-              Roles
-              <select multiple size="4" v-model="employeeUserAccount.rolesId">
-                <option v-for="role in roles" :key="role.id" :value="String(role.id)">
-                  {{ role.name }}
-                </option>
-              </select>
-            </label>
+            <div class="field-block" v-if="!employeeForm.id && employeeUserAccount.enabled">
+              <span class="field-title">Roles</span>
+              <div class="roles-checklist">
+                <label class="check-item" v-for="role in roles" :key="role.id">
+                  <input type="checkbox" :value="String(role.id)" v-model="employeeUserAccount.rolesId" />
+                  <span>{{ role.name }}</span>
+                </label>
+              </div>
+            </div>
             <div class="inline actions">
               <button type="submit">{{ employeeForm.id ? 'Save' : 'Create' }}</button>
               <button class="ghost" type="button" @click="resetEmployeeForm">Clear</button>
@@ -238,9 +228,11 @@
                 <td>{{ departmentNameById(employee.departmentId) }}</td>
                 <td>{{ positionNameById(employee.positionId) }}</td>
                 <td>{{ usernameById(employee.userId) }}</td>
-                <td class="inline actions-col">
-                  <button @click="editEmployee(employee)">Edit</button>
-                  <button class="danger" @click="deleteEmployee(employee.id)">Delete</button>
+                <td class="actions-col">
+                  <div class="row-actions">
+                    <button @click="editEmployee(employee)">Edit</button>
+                    <button class="danger" @click="deleteEmployee(employee.id)">Delete</button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -334,10 +326,12 @@
               <tr v-for="department in filteredDepartments" :key="department.id">
                 <td>{{ department.name }}</td>
                 <td>{{ department.description }}</td>
-                <td class="inline actions-col wide">
-                  <button @click="editDepartment(department)">Edit</button>
-                  <button @click="loadDepartmentEmployees(department)">Employees</button>
-                  <button class="danger" @click="deleteDepartment(department.id)">Delete</button>
+                <td class="actions-col wide">
+                  <div class="row-actions">
+                    <button @click="editDepartment(department)">Edit</button>
+                    <button @click="loadDepartmentEmployees(department)">Employees</button>
+                    <button class="danger" @click="deleteDepartment(department.id)">Delete</button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -452,10 +446,12 @@
                 <td>{{ position.description }}</td>
                 <td>{{ position.minSalary }}</td>
                 <td>{{ position.maxSalary }}</td>
-                <td class="inline actions-col wide">
-                  <button @click="editPosition(position)">Edit</button>
-                  <button @click="loadPositionEmployees(position)">Employees</button>
-                  <button class="danger" @click="deletePosition(position.id)">Delete</button>
+                <td class="actions-col wide">
+                  <div class="row-actions">
+                    <button @click="editPosition(position)">Edit</button>
+                    <button @click="loadPositionEmployees(position)">Employees</button>
+                    <button class="danger" @click="deletePosition(position.id)">Delete</button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -502,12 +498,15 @@
               Password {{ userForm.id ? 'optional' : '' }}
               <input :required="!userForm.id" type="password" v-model="userForm.password" />
             </label>
-            <label>
-              Roles
-              <select multiple size="4" v-model="userForm.rolesId">
-                <option v-for="role in roles" :key="role.id" :value="String(role.id)">{{ role.name }}</option>
-              </select>
-            </label>
+            <div class="field-block">
+              <span class="field-title">Roles</span>
+              <div class="roles-checklist">
+                <label class="check-item" v-for="role in roles" :key="role.id">
+                  <input type="checkbox" :value="String(role.id)" v-model="userForm.rolesId" />
+                  <span>{{ role.name }}</span>
+                </label>
+              </div>
+            </div>
             <label>
               Link employee optional
               <select v-model="userForm.employeeId">
@@ -584,11 +583,13 @@
                 <td>
                   <span class="badge" v-for="role in user.roles || []" :key="role.id">{{ role.name }}</span>
                 </td>
-                <td class="inline actions-col wide">
-                  <button @click="editUser(user)">Edit</button>
-                  <button class="ghost" v-if="linkedEmployeeNameByUserId(user.id) !== '-'"
-                    @click="unlinkUserFromUser(user)">Unlink</button>
-                  <button class="danger" @click="deleteUser(user.id)">Delete</button>
+                <td class="actions-col wide">
+                  <div class="row-actions">
+                    <button @click="editUser(user)">Edit</button>
+                    <button class="ghost" v-if="linkedEmployeeNameByUserId(user.id) !== '-'"
+                      @click="unlinkUserFromUser(user)">Unlink</button>
+                    <button class="danger" @click="deleteUser(user.id)">Delete</button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -676,9 +677,11 @@
             <tbody>
               <tr v-for="role in filteredRoles" :key="role.id">
                 <td>{{ role.name }}</td>
-                <td class="inline actions-col">
-                  <button @click="editRole(role)">Edit</button>
-                  <button class="danger" @click="deleteRole(role.id)">Delete</button>
+                <td class="actions-col">
+                  <div class="row-actions">
+                    <button @click="editRole(role)">Edit</button>
+                    <button class="danger" @click="deleteRole(role.id)">Delete</button>
+                  </div>
                 </td>
               </tr>
             </tbody>

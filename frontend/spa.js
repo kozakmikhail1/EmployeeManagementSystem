@@ -477,10 +477,13 @@
           employeeServerCurrentPage.value = Math.max(Number(data.number || 0) + 1, 1);
           settings.page = employeeServerCurrentPage.value;
 
-          const hasAdvancedSearch = normalizeText(employeeSearch.departmentName)
+          const hasSearchCriteria = normalizeText(employeeGlobalSearch.value)
+            || normalizeText(employeeSearch.departmentName)
             || normalizeText(employeeSearch.roleName)
-            || employeeSearch.active !== "";
-          if (hasAdvancedSearch || showSearchCompleted) {
+            || employeeSearch.active !== ""
+            || employeeFilter.minSalary !== ""
+            || employeeFilter.maxSalary !== "";
+          if (hasSearchCriteria || showSearchCompleted) {
             employeeSearchResult.value = { totalElements: employeeServerTotalItems.value };
           } else {
             employeeSearchResult.value = null;
@@ -611,21 +614,18 @@
         });
       }
 
-      async function runNestedEmployeeSearch() {
+      async function applyEmployeeFiltersSearch() {
         await loadEmployees(true, true);
       }
 
-      function clearNestedEmployeeSearch() {
+      function resetEmployeeFiltersSearch() {
+        employeeGlobalSearch.value = "";
+        employeeFilter.minSalary = "";
+        employeeFilter.maxSalary = "";
         employeeSearch.departmentName = "";
         employeeSearch.roleName = "";
         employeeSearch.active = "";
         employeeSearchResult.value = null;
-        loadEmployees(true);
-      }
-
-      function resetEmployeeSalaryFilter() {
-        employeeFilter.minSalary = "";
-        employeeFilter.maxSalary = "";
         loadEmployees(true);
       }
 
@@ -1289,9 +1289,8 @@
         openPositionCreate,
         openUserCreate,
         openRoleCreate,
-        resetEmployeeSalaryFilter,
-        runNestedEmployeeSearch,
-        clearNestedEmployeeSearch,
+        applyEmployeeFiltersSearch,
+        resetEmployeeFiltersSearch,
 
         submitEmployeeForm,
         editEmployee,
