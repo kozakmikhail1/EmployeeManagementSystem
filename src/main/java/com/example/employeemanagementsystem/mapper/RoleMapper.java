@@ -16,15 +16,21 @@ public interface RoleMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "users", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Role toEntity(RoleCreateDto dto);
 
     RoleDto toDto(Role entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "users", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updateRoleFromDto(RoleCreateDto dto, @MappingTarget Role entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "users", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updateRoleFromPatchDto(RolePatchDto dto, @MappingTarget Role entity);
 }

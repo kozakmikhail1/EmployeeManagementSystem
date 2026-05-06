@@ -19,15 +19,21 @@ public interface DepartmentMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "employees", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Department toEntity(DepartmentCreateDto dto);
 
     DepartmentDto toDto(Department entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "employees", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updateDepartmentFromDto(DepartmentCreateDto dto, @MappingTarget Department entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "employees", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updateDepartmentFromPatchDto(DepartmentPatchDto dto, @MappingTarget Department entity);
 }

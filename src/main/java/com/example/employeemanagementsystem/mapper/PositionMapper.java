@@ -15,15 +15,21 @@ import com.example.employeemanagementsystem.model.Position;
 public interface PositionMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "employees", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Position toEntity(PositionCreateDto positionCreateDto);
 
     PositionDto toDto(Position position);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "employees", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updatePositionFromDto(PositionCreateDto dto, @MappingTarget Position entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "employees", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updatePositionFromPatchDto(PositionPatchDto dto, @MappingTarget Position entity);
 }

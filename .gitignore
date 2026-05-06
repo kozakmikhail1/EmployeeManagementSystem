@@ -35,3 +35,9 @@ tools/*.tgz
 
 # Local DB dumps
 old_db.sql
+data/*.sql
+data/*.dump
+
+# Local runtime logs
+logs/
+*.log

@@ -17,6 +17,8 @@ public abstract class UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "employee", ignore = true)    
     @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract User toEntity(UserCreateDto userCreateDto);
     @Mapping(target = "employee", ignore = true)
     public abstract UserDto toDto(User user);
@@ -24,5 +26,7 @@ public abstract class UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "employee", ignore = true)
     @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract void updateUserFromDto(UserCreateDto dto, @MappingTarget User entity);
 }
